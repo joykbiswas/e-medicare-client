@@ -6,14 +6,12 @@ import { MedicineCard } from "@/components/modules/homepage/MedicineCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
-import { Search, Filter, X } from "lucide-react";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Search, Filter, X, ChevronDown } from "lucide-react";
 import type { Medicine } from "@/types/medicine.type";
 import { medicineService } from "@/services/medicine.service";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -54,6 +52,13 @@ export function MedicinesPageClient({
       }
     });
   }, []);
+
+  // Get selected category name
+  const selectedCategoryName = useMemo(() => {
+    if (!selectedCategory) return "All Categories";
+    const category = categories.find((cat) => cat.id === selectedCategory);
+    return category?.name || "All Categories";
+  }, [selectedCategory, categories]);
 
   // Filter medicines client-side based on search
   const filteredMedicines = useMemo(() => {
@@ -170,21 +175,31 @@ export function MedicinesPageClient({
               />
             </div>
 
-            {/* Category Filter */}
-            <Select value={selectedCategory} onValueChange={handleCategoryChange}>
-              <SelectTrigger className="w-full sm:w-[200px]">
-                <Filter className="mr-2 h-4 w-4" />
-                <SelectValue placeholder="All Categories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">All Categories</SelectItem>
+            {/* Category Filter using DropdownMenu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full sm:w-[200px] justify-between">
+                  <div className="flex items-center gap-2">
+                    <Filter className="h-4 w-4" />
+                    <span>{selectedCategoryName}</span>
+                  </div>
+                  <ChevronDown className="h-4 w-4 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-[200px]">
+                <DropdownMenuItem onClick={() => handleCategoryChange("")}>
+                  All Categories
+                </DropdownMenuItem>
                 {categories.map((category) => (
-                  <SelectItem key={category.id} value={category.id}>
+                  <DropdownMenuItem
+                    key={category.id}
+                    onClick={() => handleCategoryChange(category.id)}
+                  >
                     {category.name}
-                  </SelectItem>
+                  </DropdownMenuItem>
                 ))}
-              </SelectContent>
-            </Select>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             {/* Clear Filters */}
             {(searchQuery || selectedCategory) && (
