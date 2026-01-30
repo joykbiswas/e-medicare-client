@@ -42,7 +42,7 @@ interface NavbarProps {
   className?: string;
   logo?: {
     url: string;
-    src: string;
+    // src: string;
     alt: string;
     title: string;
     className?: string;
@@ -63,7 +63,7 @@ interface NavbarProps {
 const Navbar = ({
   logo = {
     url: "/",
-    src: "/next.svg",
+
     alt: "logo",
     title: "E-Medicare",
   },
@@ -93,24 +93,18 @@ const Navbar = ({
         <nav className="hidden items-center justify-between lg:flex py-4">
           <div className="flex items-center gap-6">
             {/* Logo */}
-            <Link href={logo.url} className="flex items-center gap-2">
-              <img
-                src={logo.src}
-                className="max-h-8 dark:invert"
-                alt={logo.alt}
-              />
-              <span className="text-lg font-semibold tracking-tighter">
-                {logo.title}
-              </span>
-            </Link>
-            <div className="flex items-center">
+            <h3 className="text-lg font-semibold tracking-tighter">{logo.title}</h3>
+            
+            
+          </div>
+          <div className="flex items-center">
               <NavigationMenu>
                 <NavigationMenuList>
                   {menu.map((item) => renderMenuItem(item))}
                 </NavigationMenuList>
               </NavigationMenu>
             </div>
-          </div>
+          
           <div className="flex gap-2 items-center">
             <ModeToggle />
             
@@ -201,11 +195,7 @@ const Navbar = ({
         <div className="block lg:hidden py-4">
           <div className="flex items-center justify-between">
             <Link href={logo.url} className="flex items-center gap-2">
-              <img
-                src={logo.src}
-                className="max-h-8 dark:invert"
-                alt={logo.alt}
-              />
+              <h3 className="text-lg font-semibold tracking-tighter">{logo.title}</h3>
             </Link>
             <div className="flex items-center justify-center gap-2">
               <ModeToggle />
@@ -232,11 +222,7 @@ const Navbar = ({
                   <SheetHeader>
                     <SheetTitle>
                       <Link href={logo.url} className="flex items-center gap-2">
-                        <img
-                          src={logo.src}
-                          className="max-h-8 dark:invert"
-                          alt={logo.alt}
-                        />
+                        <h3 className="text-lg font-semibold tracking-tighter">{logo.title}</h3>
                       </Link>
                     </SheetTitle>
                   </SheetHeader>

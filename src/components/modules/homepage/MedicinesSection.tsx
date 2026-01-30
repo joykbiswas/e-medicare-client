@@ -1,6 +1,7 @@
 import { MedicineCard } from "./MedicineCard";
 import { Button } from "@/components/ui/button";
 import type { Medicine } from "@/types/medicine.type";
+import Link from "next/link";
 
 interface MedicinesSectionProps {
   medicines: Medicine[];
@@ -19,8 +20,8 @@ export function MedicinesSection({ medicines }: MedicinesSectionProps) {
               Browse our collection of trusted pharmaceutical products
             </p>
           </div>
-          <Button variant="outline" size="sm">
-            View All
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/medicines">View All</Link>
           </Button>
         </div>
 

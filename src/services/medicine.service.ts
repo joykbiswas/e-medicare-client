@@ -68,4 +68,31 @@ export const medicineService = {
       return { data: null, error: "Something went wrong" };
     }
   },
+
+  createReview: async (data: {
+    medicineId: string;
+    rating: number;
+    comment: string;
+  }): Promise<{ data: any | null; error: string | null }> => {
+    try {
+      const res = await fetch(`${API_BASE}/reviews`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+
+      const result = await res.json();
+
+      if (result.success) {
+        return { data: result.data, error: null };
+      }
+      return { data: null, error: result.message || "Failed to create review" };
+    } catch (err) {
+      return { data: null, error: "Something went wrong" };
+    }
+  },
+
 };

@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "E-Medicare - Your Trusted Online Pharmacy",
+  title: "E-Medicare ",
   description: "Get genuine medicines delivered to your doorstep. Fast, secure, and reliable healthcare solutions.",
 };
 

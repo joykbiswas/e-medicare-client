@@ -9,7 +9,7 @@ export default async function Home() {
   // Fetch data in parallel
   const [categoriesResult, medicinesResult] = await Promise.all([
     medicineService.getCategories(),
-    medicineService.getMedicines({ limit: 8 }),
+    medicineService.getMedicines({ limit: 12 }),
   ]);
 
   const categories = categoriesResult.data || [];
