@@ -1,16 +1,63 @@
-import { env } from "@/env";
 import { cookies } from "next/headers";
+import { decodeJWT, getTokenFromCookies } from "@/lib/jwt";
 
-const AUTH_URL = env.AUTH_URL;
+export interface UserInfo {
+  id: string;
+  userId: string;
+  email: string;
+  name: string;
+  role: string;
+  [key: string]: any; // For any additional fields
+}
 
 export const userService = {
+  /**
+   * Get user info from JWT token in cookies
+   */
+  getUserFromToken: async function (): Promise<{ data: UserInfo | null; error: string | null }> {
+    try {
+      const cookieStore = await cookies();
+      
+      // Get token from cookie (backend uses "token" as cookie name)
+      const token = getTokenFromCookies(cookieStore, 'token');
+
+      if (!token) {
+        return { data: null, error: "Token not found in cookies" };
+      }
+
+      // Decode the JWT token
+      const decoded = decodeJWT(token);
+
+      if (!decoded) {
+        return { data: null, error: "Invalid token format" };
+      }
+
+      // Extract user info from decoded token
+      // Backend JWT payload: { userId, name, email, role }
+      const userInfo: UserInfo = {
+        id: decoded.userId || decoded.id || '',
+        userId: decoded.userId || decoded.id || '',
+        email: decoded.email || '',
+        name: decoded.name || '',
+        role: decoded.role || 'CUSTOMER',
+        ...decoded, // Include any other fields from the token
+      };
+
+      return { data: userInfo, error: null };
+    } catch (err) {
+      console.error('Error getting user from token:', err);
+      return { data: null, error: "Something Went Wrong" };
+    }
+  },
+
+  /**
+   * Legacy method - kept for backward compatibility
+   */
   getSession: async function () {
     try {
       const cookieStore = await cookies();
 
-      console.log(cookieStore.toString());
-
-      const res = await fetch(`${AUTH_URL}/get-session`, {
+      const res = await fetch(`${process.env.AUTH_URL || 'http://localhost:5000'}/get-session`, {
         headers: {
           Cookie: cookieStore.toString(),
         },

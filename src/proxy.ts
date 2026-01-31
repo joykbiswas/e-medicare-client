@@ -5,31 +5,43 @@ import { userService } from "./services/user.services";
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
-  let isAuthenticated = false;
-  let isAdmin = false;
+  // Get user info from token
+  const { data: userInfo, error } = await userService.getUserFromToken();
 
-  const { data } = await userService.getSession();
-
-  if (data) {
-    isAuthenticated = true;
-    isAdmin = data.user.role === Role.admin;
-  }
-
-  //* User in not authenticated at all
-  if (!isAuthenticated) {
+  // If no user info, redirect to login
+  if (!userInfo || error) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  //* User is authenticated and role = ADMIN
-  //* User can not visit user dashboard
-  if (isAdmin && pathname.startsWith("/dashboard")) {
-    return NextResponse.redirect(new URL("/admin-dashboard", request.url));
+  // Check if user has a role
+  if (!userInfo.role) {
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  //* User is authenticated and role = USER
-  //* User can not visit admin-dashboard
-  if (!isAdmin && pathname.startsWith("/admin-dashboard")) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+  // Determine user role
+  const isAdmin = userInfo.role === Role.admin || userInfo.role === "ADMIN";
+  const isSeller = userInfo.role === Role.seller || userInfo.role === "SELLER";
+  const isCustomer = userInfo.role === Role.customer || userInfo.role === "CUSTOMER";
+
+  //* Admin can only visit admin-dashboard
+  if (isAdmin) {
+    if (pathname.startsWith("/customer-dashboard") || pathname.startsWith("/seller-dashboard") || pathname.startsWith("/dashboard")) {
+      return NextResponse.redirect(new URL("/admin-dashboard", request.url));
+    }
+  }
+
+  //* Seller can only visit seller-dashboard
+  if (isSeller) {
+    if (pathname.startsWith("/admin-dashboard") || pathname.startsWith("/customer-dashboard") || pathname.startsWith("/dashboard")) {
+      return NextResponse.redirect(new URL("/seller-dashboard", request.url));
+    }
+  }
+
+  //* Customer can only visit customer-dashboard
+  if (isCustomer) {
+    if (pathname.startsWith("/admin-dashboard") || pathname.startsWith("/seller-dashboard") || pathname.startsWith("/dashboard")) {
+      return NextResponse.redirect(new URL("/customer-dashboard", request.url));
+    }
   }
 
   return NextResponse.next();
@@ -41,5 +53,9 @@ export const config = {
     "/dashboard/:path*",
     "/admin-dashboard",
     "/admin-dashboard/:path*",
+    "/customer-dashboard",
+    "/customer-dashboard/:path*",
+    "/seller-dashboard",
+    "/seller-dashboard/:path*",
   ],
 };

@@ -13,31 +13,39 @@ import {
 } from "@/components/ui/sidebar"
 import Link from "next/link"
 import { adminRoute } from "@/routes/adminRoutes"
-import { userRoute } from "@/routes/userRoutes"
+import { customerRoute } from "@/routes/customerRoutes"
+import { sellerRoute } from "@/routes/sellerRoutes"
 import { Route } from "@/types"
 import { Role } from "@/constants/roles"
+import type { UserInfo } from "@/services/user.services"
 
 export function AppSidebar({
-   user, ...props 
-  }: {
-    user: {role: string} & React.ComponentProps<typeof Sidebar>
-  }) {
-let routes: Route[] = [];
-    switch (user.role) {
-      case Role.admin:
-        routes = adminRoute;
-        break;
-      case Role.user:
-        routes = userRoute;
-        break;
-    
-      default:
-        routes = [];
-        break;
-    }
+  user,
+  ...props 
+}: {
+  user: UserInfo & React.ComponentProps<typeof Sidebar>
+}) {
+  // Add null check for user and role
+  if (!user || !user.role) {
+    return null;
+  }
+
+  let routes: Route[] = [];
+  
+  // Map roles to routes
+  if (user.role === Role.admin || user.role === "ADMIN") {
+    routes = adminRoute;
+  } else if (user.role === Role.seller || user.role === "SELLER") {
+    routes = sellerRoute;
+  } else if (user.role === Role.customer || user.role === "CUSTOMER") {
+    routes = customerRoute;
+  } else {
+    // Default to customer routes
+    routes = customerRoute;
+  }
+  
   return (
     <Sidebar {...props}>
-      
       <SidebarContent>
         {routes.map((item) => (
           <SidebarGroup key={item.title}>
@@ -46,7 +54,7 @@ let routes: Route[] = [];
               <SidebarMenu>
                 {item.items.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild >
+                    <SidebarMenuButton asChild>
                       <Link href={item.url}>{item.title}</Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

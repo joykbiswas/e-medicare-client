@@ -1,6 +1,6 @@
 "use client";
 
-import { createBlogPost } from "@/actions/blog.action";
+// import { createBlogPost } from "@/actions/blog.action";
 // import { createBlogPost } from "@/actions/blog.action";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,45 +36,7 @@ const blogSchema = z.object({
 });
 
 export function CreateBlogFormClient() {
-  const form = useForm({
-    defaultValues: {
-      title: "",
-      content: "",
-      tags: "",
-    },
-    validators: {
-      onSubmit: blogSchema,
-    },
-    onSubmit: async ({ value }) => {
-      const toastId = toast.loading("Creating....");
-
-      const blogData = {
-        title: value.title,
-        content: value.content,
-        tags: value.tags
-          .split(",")
-          .map((item) => item.trim())
-          .filter((item) => item !== ""),
-      };
-
-      console.log(blogData);
-
-      try {
-        const res = await createBlogPost(blogData);
-
-        console.log(res);
-
-        if (res.error) {
-          toast.error(res.error.message, { id: toastId });
-          return;
-        }
-
-        toast.success("Post Created", { id: toastId });
-      } catch (err) {
-        toast.error("Something Went Wrong", { id: toastId });
-      }
-    },
-  });
+ 
 
   return (
     <Card className="w-full max-w-2xl">
@@ -84,88 +46,7 @@ export function CreateBlogFormClient() {
           Enter your information below to create your account
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <form
-          id="blog-post"
-          onSubmit={(e) => {
-            e.preventDefault();
-            form.handleSubmit();
-          }}
-        >
-          <FieldGroup>
-            <form.Field
-              name="title"
-              children={(field) => {
-                const isInvalid =
-                  field.state.meta.isTouched && !field.state.meta.isValid;
-                return (
-                  <Field data-invalid={isInvalid}>
-                    <FieldLabel htmlFor={field.name}>Title</FieldLabel>
-                    <Input
-                      type="text"
-                      id={field.name}
-                      name={field.name}
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder="Blog Title"
-                    />
-                    {isInvalid && (
-                      <FieldError errors={field.state.meta.errors} />
-                    )}
-                  </Field>
-                );
-              }}
-            />
-            <form.Field
-              name="content"
-              children={(field) => {
-                const isInvalid =
-                  field.state.meta.isTouched && !field.state.meta.isValid;
-                return (
-                  <Field data-invalid={isInvalid}>
-                    <FieldLabel htmlFor={field.name}>Content</FieldLabel>
-                    <Textarea
-                      id={field.name}
-                      name={field.name}
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder="Write your blog"
-                    />
-                    {isInvalid && (
-                      <FieldError errors={field.state.meta.errors} />
-                    )}
-                  </Field>
-                );
-              }}
-            />
-            <form.Field
-              name="tags"
-              children={(field) => {
-                const isInvalid =
-                  field.state.meta.isTouched && !field.state.meta.isValid;
-                return (
-                  <Field data-invalid={isInvalid}>
-                    <FieldLabel htmlFor={field.name}>
-                      Tags (comma separated)
-                    </FieldLabel>
-                    <Input
-                      type="text"
-                      id={field.name}
-                      name={field.name}
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder="nextjs, web"
-                    />
-                    {isInvalid && (
-                      <FieldError errors={field.state.meta.errors} />
-                    )}
-                  </Field>
-                );
-              }}
-            />
-          </FieldGroup>
-        </form>
-      </CardContent>
+     
       <CardFooter className="flex flex-col">
         <Button form="blog-post" type="submit" className="w-full">
           Submit
