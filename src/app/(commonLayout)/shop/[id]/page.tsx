@@ -1,7 +1,9 @@
 import { medicineService } from "@/services/medicine.service";
-import { MedicineDetailComponent } from "@/components/modules/medicines/MedicineDetail";
+// import { MedicineDetailComponent } from "@/components/modules/shop/ShopDetail";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
+import { MedicineDetailComponent } from "@/components/modules/Medicine/MedicineDetail";
+// import { ShopDetailComponent } from "@/components/modules/Medicine/MedicineDetail";
 
 interface MedicinePageProps {
   params: Promise<{ id: string }>;

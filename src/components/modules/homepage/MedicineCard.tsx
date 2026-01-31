@@ -43,7 +43,7 @@ export function MedicineCard({ medicine }: MedicineCardProps) {
   const hasValidImage = medicine.imageUrl && !imageError;
 
   return (
-    <Link href={`/medicines/${medicine.id}`}>
+    <Link href={`/shop/${medicine.id}`}>
       <Card className="group hover:shadow-lg transition-all duration-300 flex flex-col cursor-pointer">
         <CardContent className="p-4 flex-1">
           <div className="relative aspect-square w-full mb-4 rounded-lg overflow-hidden bg-muted">

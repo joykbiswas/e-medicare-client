@@ -2,32 +2,29 @@ import { Route } from "@/types";
 
 export const sellerRoute: Route[] = [
   {
-    title: "Product Management",
+    title: "Dashboard",
     items: [
       {
-        title: "My Products",
-        url: "/seller-dashboard/products",
-      },
-      {
-        title: "Add Product",
-        url: "/seller-dashboard/add-product",
-      },
-      {
-        title: "Orders",
-        url: "/seller-dashboard/orders",
+        title: "Dashboard",
+        url: "/seller/dashboard",
       },
     ],
   },
   {
-    title: "Analytics",
+    title: "Product Management",
     items: [
       {
-        title: "Sales Report",
-        url: "/seller-dashboard/sales",
+        title: "Inventory",
+        url: "/seller/medicines",
       },
+    ],
+  },
+  {
+    title: "Orders",
+    items: [
       {
-        title: "Revenue",
-        url: "/seller-dashboard/revenue",
+        title: "Orders",
+        url: "/seller/orders",
       },
     ],
   },

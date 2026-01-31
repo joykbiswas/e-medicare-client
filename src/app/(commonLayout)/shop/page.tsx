@@ -1,9 +1,10 @@
 import { medicineService } from "@/services/medicine.service";
 import { MedicineCard } from "@/components/modules/homepage/MedicineCard";
-import { MedicinesPageClient } from "@/components/modules/medicines/MedicinesPageClient";
+// import { ShopPageClient } from "@/components/modules/Medicine/MedicinesPageClient";
 import { Suspense } from "react";
+import { MedicinesPageClient } from "@/components/modules/Medicine/MedicinesPageClient";
 
-interface MedicinesPageProps {
+interface ShopPageProps {
   searchParams: Promise<{
     page?: string;
     category?: string;
@@ -11,7 +12,7 @@ interface MedicinesPageProps {
   }>;
 }
 
-export default async function MedicinesPage({ searchParams }: MedicinesPageProps) {
+export default async function ShopPage({ searchParams }: ShopPageProps) {
   const params = await searchParams;
   const page = parseInt(params.page || "1");
   const categoryId = params.category;
@@ -31,7 +32,7 @@ export default async function MedicinesPage({ searchParams }: MedicinesPageProps
         </div>
       </div>
     );
-  }
+  } 
 
   return (
     <MedicinesPageClient

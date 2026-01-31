@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/sidebar"
 import Link from "next/link"
 import { adminRoute } from "@/routes/adminRoutes"
-import { customerRoute } from "@/routes/customerRoutes"
 import { sellerRoute } from "@/routes/sellerRoutes"
 import { Route } from "@/types"
 import { Role } from "@/constants/roles"
@@ -32,16 +31,15 @@ export function AppSidebar({
 
   let routes: Route[] = [];
   
-  // Map roles to routes
+  // Only Admin and Seller have dashboard routes
+  // Customer routes are public (not in dashboard)
   if (user.role === Role.admin || user.role === "ADMIN") {
     routes = adminRoute;
   } else if (user.role === Role.seller || user.role === "SELLER") {
     routes = sellerRoute;
-  } else if (user.role === Role.customer || user.role === "CUSTOMER") {
-    routes = customerRoute;
   } else {
-    // Default to customer routes
-    routes = customerRoute;
+    // Customer should not see sidebar - this shouldn't happen due to redirect
+    return null;
   }
   
   return (

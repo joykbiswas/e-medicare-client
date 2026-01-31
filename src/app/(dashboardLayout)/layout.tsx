@@ -17,17 +17,16 @@ import {
 import { Role } from "@/constants/roles";
 import { userService } from "@/services/user.services";
 import { redirect } from "next/navigation";
-import { User, Mail, Shield, Store } from "lucide-react";
+import { Shield, Store } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { User, Mail } from "lucide-react";
 
 export default async function DashboardLayout({
   admin,
-  customer,
   seller,
 }: {
   children: React.ReactNode;
   admin: React.ReactNode;
-  customer: React.ReactNode;
   seller: React.ReactNode;
 }) {
   // Get user info from token
@@ -47,37 +46,34 @@ export default async function DashboardLayout({
   const isAdmin = userInfo.role === Role.admin || userInfo.role === "ADMIN";
   const isSeller = userInfo.role === Role.seller || userInfo.role === "SELLER";
   const isCustomer = userInfo.role === Role.customer || userInfo.role === "CUSTOMER";
-  
-  // Determine which content to show based on role
-  let contentToShow: React.ReactNode;
-  if (isAdmin) {
-    contentToShow = admin;
-  } else if (isSeller) {
-    contentToShow = seller;
-  } else if (isCustomer) {
-    contentToShow = customer;
-  } else {
-    // Default to customer if role is unknown
-    contentToShow = customer;
+
+  // Customer should not access dashboard - redirect to home
+  if (isCustomer) {
+    redirect("/");
   }
+
+  // Only Admin and Seller can access dashboard
+  if (!isAdmin && !isSeller) {
+    redirect("/");
+  }
+
+  // Determine which content to show based on role
+  const contentToShow = isAdmin ? admin : seller;
 
   // Get role display name
   const getRoleDisplay = () => {
     if (isAdmin) return "Admin";
-    if (isSeller) return "Seller";
-    return "Customer";
+    return "Seller";
   };
 
   const getRoleIcon = () => {
     if (isAdmin) return Shield;
-    if (isSeller) return Store;
-    return User;
+    return Store;
   };
 
   const getPanelName = () => {
     if (isAdmin) return "Admin Panel";
-    if (isSeller) return "Seller Panel";
-    return "Customer Panel";
+    return "Seller Panel";
   };
 
   const RoleIcon = getRoleIcon();
@@ -126,7 +122,7 @@ export default async function DashboardLayout({
               </div>
               <Separator orientation="vertical" className="h-6" />
               <Badge 
-                variant={isAdmin ? "default" : isSeller ? "secondary" : "outline"}
+                variant={isAdmin ? "default" : "secondary"}
                 className="flex items-center gap-1"
               >
                 <RoleIcon className="h-3 w-3" />

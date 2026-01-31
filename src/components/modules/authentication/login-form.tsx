@@ -40,10 +40,20 @@ export function LoginForm({ ...props }: React.ComponentProps<typeof Card>) {
     onSubmit: async ({ value }) => {
       const toastId = toast.loading("Logging in...");
       try {
-        await apiRequest("/auth/login", {
+        const response = await apiRequest("/auth/login", {
           method: "POST",
           body: JSON.stringify(value),
         });
+
+        // Store token in localStorage from response
+        if (response.token) {
+          localStorage.setItem("token", response.token);
+          console.log("Token stored in localStorage");
+        }
+        // Also try to set it in cookies for backward compatibility
+        if (response.token) {
+          document.cookie = `token=${response.token}; path=/; max-age=86400`;
+        }
 
         toast.success("Logged in successfully!", { id: toastId });
 

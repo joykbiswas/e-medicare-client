@@ -1,87 +1,378 @@
-// // import BlogCard from "@/components/modules/homepage/BlogCard";
-// import { blogService } from "@/services/blog.service";
-// import { BlogPost } from "@/types";
-// import Image from "next/image";
-// import coffee from "../../../public/images/coffee.jpg";
-// import BlogCard from "@/components/modules/homepage/Blogcard";
+// "use client";
 
-// export default async function Home() {
-//   const featuredPostsPromise = blogService.getBlogPosts({ isFeatured: true });
-//   const postsPromise = blogService.getBlogPosts(
-//     { limit: "3" },
-//     { revalidate: 10 },
-//   );
+// import { Menu, ShoppingCart, LogOut, User as UserIcon } from "lucide-react";
+// import { cn } from "@/lib/utils";
+// import { Accordion } from "@/components/ui/accordion";
+// import { Button } from "@/components/ui/button";
+// import {
+//   NavigationMenu,
+//   NavigationMenuItem,
+//   NavigationMenuLink,
+//   NavigationMenuList,
+// } from "@/components/ui/navigation-menu";
+// import {
+//   Sheet,
+//   SheetContent,
+//   SheetHeader,
+//   SheetTitle,
+//   SheetTrigger,
+// } from "@/components/ui/sheet";
+// import {
+//   DropdownMenu,
+//   DropdownMenuContent,
+//   DropdownMenuItem,
+//   DropdownMenuSeparator,
+//   DropdownMenuTrigger,
+// } from "@/components/ui/dropdown-menu";
+// import Link from "next/link";
+// import { ModeToggle } from "./ModeToggle";
+// import { useCart } from "@/contexts/CartContext";
+// import { Badge } from "@/components/ui/badge";
+// import { useRouter } from "next/navigation";
+// import { useAuth } from "@/hooks/use-auth";
+// import { Role } from "@/constants/roles";
 
-//   const [featuredPosts, posts] = await Promise.all([
-//     featuredPostsPromise,
-//     postsPromise,
-//   ]);
+// interface MenuItem {
+//   title: string;
+//   url: string;
+//   description?: string;
+//   icon?: React.ReactNode;
+//   items?: MenuItem[];
+// }
 
-//   // console.time("Sequential");
+// interface NavbarProps {
+//   className?: string;
+//   logo?: {
+//     url: string;
+//     alt: string;
+//     title: string;
+//     className?: string;
+//   };
+//   menu?: MenuItem[];
+//   auth?: {
+//     login: {
+//       title: string;
+//       url: string;
+//     };
+//     signup: {
+//       title: string;
+//       url: string;
+//     };
+//   };
+// }
 
-//   // await new Promise((resolve) => setTimeout(resolve, 3000));
-//   // await new Promise((resolve) => setTimeout(resolve, 3000));
+// const Navbar = ({
+//   logo = {
+//     url: "/",
+//     alt: "logo",
+//     title: "E-Medicare",
+//   },
+//   menu = [
+//     { title: "Home", url: "/" },
+//     { title: "Medicines", url: "/medicines" },
+//   ],
+//   auth = {
+//     login: { title: "Login", url: "/login" },
+//     signup: { title: "Register", url: "/register" },
+//   },
+//   className,
+// }: NavbarProps) => {
+//   const { getTotalItems, items, getTotalPrice, removeFromCart } = useCart();
+//   const router = useRouter();
+//   const { user, loading, isAuthenticated } = useAuth();
+//   const totalItems = getTotalItems();
 
-//   // console.timeEnd("Sequential");
+//   // Build menu items - always show public routes
+//   const getMenuItems = () => {
+//     const baseMenu = [
+//       { title: "Home", url: "/" },
+//       { title: "Medicines", url: "/medicines" },
+//       { title: "Cart", url: "/cart" },
+//       { title: "Orders", url: "/orders" },
+//     ];
 
-//   // console.time("Parallel");
+//     // Only show Dashboard for Admin and Seller when authenticated
+//     if (user) {
+//       const isAdmin = user.role === Role.admin || user.role === "ADMIN";
+//       const isSeller = user.role === Role.seller || user.role === "SELLER";
 
-//   // const promise1 = new Promise((resolve) => setTimeout(resolve, 1000));
-//   // const promise2 = new Promise((resolve) => setTimeout(resolve, 2000));
+//       if (isAdmin || isSeller) {
+//         baseMenu.push({
+//           title: "Dashboard",
+//           url: isAdmin ? "/admin" : "/seller-dashboard",
+//         });
+//       }
+//     }
 
-//   // await Promise.all([promise1, promise2]);
+//     return baseMenu;
+//   };
 
-//   // console.timeEnd("Parallel");
+//   const menuItems = getMenuItems();
+
+//   const handleLogout = () => {
+//     // Clear token cookie
+//     document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+//     router.push("/login");
+//     router.refresh();
+//   };
+
 //   return (
-//     <div className="max-w-7xl mx-auto px-4">
-//       <div className="mb-12 mt-8 h-[calc(100vh-80px)] flex flex-col justify-center">
-//         <div className="relative w-full h-96 mb-6">
-        
-//           <Image
-//             src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=1920&q=100"
-//             fill
-//             priority
-//             alt="Hero"
-//             className="object-cover rounded-md"
-//           />
-//         </div>
-//         <h1 className={"text-5xl font-bold text-center mb-4"}>
-//           Welcome to Our Blog
-//         </h1>
-//       </div>
+//     <section
+//       className={cn(
+//         "sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60",
+//         className
+//       )}
+//     >
+//       <div className="container mx-auto px-3">
+//         {/* Desktop Menu */}
+//         <nav className="hidden items-center justify-between lg:flex py-4">
+//           <div className="flex items-center gap-6">
+//             {/* Logo */}
+//             <Link href={logo.url}>
+//               <h3 className="text-lg font-semibold tracking-tighter">
+//                 {logo.title}
+//               </h3>
+//             </Link>
+//           </div>
 
-//       {featuredPosts?.data?.data && featuredPosts.data.data.length > 0 && (
-//         <div className="mb-12">
-//           <h2 className={"text-2xl font-bold mb-6"}>Featured Posts</h2>
-//           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-//             {featuredPosts.data.data.slice(0, 2).map((post: BlogPost) => (
-//               <div key={post.id} className="border rounded-lg overflow-hidden">
-//                 <img
-//                   src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&q=100"
-//                   alt={post.title}
-//                   className="w-full h-48 object-cover"
-//                 />
+//           <div className="flex items-center">
+//             <NavigationMenu>
+//               <NavigationMenuList>
+//                 {menuItems.map((item) => renderMenuItem(item))}
+//               </NavigationMenuList>
+//             </NavigationMenu>
+//           </div>
+
+//           <div className="flex gap-2 items-center">
+//             <ModeToggle />
+
+//             {/* Cart Dropdown */}
+//             <DropdownMenu>
+//               <DropdownMenuTrigger asChild>
+//                 <Button variant="outline" size="icon" className="relative">
+//                   <ShoppingCart className="h-5 w-5" />
+//                   {totalItems > 0 && (
+//                     <Badge
+//                       variant="destructive"
+//                       className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+//                     >
+//                       {totalItems}
+//                     </Badge>
+//                   )}
+//                 </Button>
+//               </DropdownMenuTrigger>
+//               <DropdownMenuContent align="end" className="w-80">
 //                 <div className="p-4">
-//                   <h3 className="font-bold text-xl mb-2">{post.title}</h3>
-//                   <p className="text-gray-600 line-clamp-2">{post.content}</p>
+//                   <h4 className="font-semibold mb-4">Shopping Cart</h4>
+//                   {items.length === 0 ? (
+//                     <p className="text-sm text-muted-foreground text-center py-4">
+//                       Your cart is empty
+//                     </p>
+//                   ) : (
+//                     <>
+//                       <div className="space-y-3 max-h-64 overflow-y-auto">
+//                         {items.map((item) => (
+//                           <div
+//                             key={item.id}
+//                             className="flex items-center justify-between gap-2 p-2 rounded-lg hover:bg-muted"
+//                           >
+//                             <div className="flex-1 min-w-0">
+//                               <p className="text-sm font-medium truncate">
+//                                 {item.name}
+//                               </p>
+//                               <p className="text-xs text-muted-foreground">
+//                                 Qty: {item.quantity} × ৳{item.price}
+//                               </p>
+//                             </div>
+//                             <div className="flex items-center gap-2">
+//                               <span className="text-sm font-semibold">
+//                                 ৳{item.price * item.quantity}
+//                               </span>
+//                               <Button
+//                                 variant="ghost"
+//                                 size="icon"
+//                                 className="h-6 w-6"
+//                                 onClick={() => removeFromCart(item.id)}
+//                               >
+//                                 ×
+//                               </Button>
+//                             </div>
+//                           </div>
+//                         ))}
+//                       </div>
+//                       <div className="border-t mt-4 pt-4">
+//                         <div className="flex justify-between items-center mb-4">
+//                           <span className="font-semibold">Total:</span>
+//                           <span className="font-bold text-lg">
+//                             ৳{getTotalPrice()}
+//                           </span>
+//                         </div>
+//                         <Button
+//                           className="w-full"
+//                           onClick={() => router.push("/checkout")}
+//                         >
+//                           Checkout
+//                         </Button>
+//                       </div>
+//                     </>
+//                   )}
 //                 </div>
-//               </div>
-//             ))}
+//               </DropdownMenuContent>
+//             </DropdownMenu>
+
+//             {/* Show User Menu if authenticated, otherwise show Login/Register */}
+//             {loading ? (
+//               <div className="w-20 h-9 bg-muted animate-pulse rounded-md" />
+//             ) : isAuthenticated && user ? (
+//               <DropdownMenu>
+//                 <DropdownMenuTrigger asChild>
+//                   <Button variant="outline" size="sm" className="gap-2">
+//                     <UserIcon className="h-4 w-4" />
+//                     <span className="hidden sm:inline">{user.name}</span>
+//                   </Button>
+//                 </DropdownMenuTrigger>
+//                 <DropdownMenuContent align="end">
+//                   <div className="px-2 py-1.5">
+//                     <p className="text-sm font-medium">{user.name}</p>
+//                     <p className="text-xs text-muted-foreground">{user.email}</p>
+//                   </div>
+//                   <DropdownMenuSeparator />
+//                   <DropdownMenuItem asChild>
+//                     <Link href="/profile">
+//                       <UserIcon className="mr-2 h-4 w-4" />
+//                       Profile
+//                     </Link>
+//                   </DropdownMenuItem>
+//                   <DropdownMenuItem asChild>
+//                     <Link href="/orders">My Orders</Link>
+//                   </DropdownMenuItem>
+//                   <DropdownMenuSeparator />
+//                   <DropdownMenuItem onClick={handleLogout}>
+//                     <LogOut className="mr-2 h-4 w-4" />
+//                     Logout
+//                   </DropdownMenuItem>
+//                 </DropdownMenuContent>
+//               </DropdownMenu>
+//             ) : (
+//               <>
+//                 <Button asChild variant="outline" size="sm">
+//                   <Link href={auth.login.url}>{auth.login.title}</Link>
+//                 </Button>
+//                 <Button asChild size="sm">
+//                   <Link href={auth.signup.url}>{auth.signup.title}</Link>
+//                 </Button>
+//               </>
+//             )}
+//           </div>
+//         </nav>
+
+//         {/* Mobile Menu */}
+//         <div className="block lg:hidden py-4">
+//           <div className="flex items-center justify-between">
+//             <Link href={logo.url}>
+//               <h3 className="text-lg font-semibold tracking-tighter">
+//                 {logo.title}
+//               </h3>
+//             </Link>
+//             <div className="flex items-center justify-center gap-2">
+//               <ModeToggle />
+//               <Link href="/cart">
+//                 <Button variant="outline" size="icon" className="relative">
+//                   <ShoppingCart className="h-5 w-5" />
+//                   {totalItems > 0 && (
+//                     <Badge
+//                       variant="destructive"
+//                       className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+//                     >
+//                       {totalItems}
+//                     </Badge>
+//                   )}
+//                 </Button>
+//               </Link>
+//               <Sheet>
+//                 <SheetTrigger asChild>
+//                   <Button variant="outline" size="icon">
+//                     <Menu className="size-5" />
+//                   </Button>
+//                 </SheetTrigger>
+//                 <SheetContent className="overflow-y-auto">
+//                   <SheetHeader>
+//                     <SheetTitle>
+//                       <Link href={logo.url}>
+//                         <h3 className="text-lg font-semibold tracking-tighter">
+//                           {logo.title}
+//                         </h3>
+//                       </Link>
+//                     </SheetTitle>
+//                   </SheetHeader>
+//                   <div className="flex flex-col gap-6 p-4">
+//                     <Accordion
+//                       type="single"
+//                       collapsible
+//                       className="flex w-full flex-col gap-4"
+//                     >
+//                       {menuItems.map((item) => renderMobileMenuItem(item))}
+//                     </Accordion>
+
+//                     {loading ? (
+//                       <div className="h-10 bg-muted animate-pulse rounded-md" />
+//                     ) : isAuthenticated && user ? (
+//                       <div className="space-y-2">
+//                         <div className="px-2 py-1.5 border-b">
+//                           <p className="text-sm font-medium">{user.name}</p>
+//                           <p className="text-xs text-muted-foreground">
+//                             {user.email}
+//                           </p>
+//                         </div>
+//                         <Button
+//                           variant="outline"
+//                           className="w-full"
+//                           onClick={handleLogout}
+//                         >
+//                           <LogOut className="mr-2 h-4 w-4" />
+//                           Logout
+//                         </Button>
+//                       </div>
+//                     ) : (
+//                       <div className="flex flex-col gap-3">
+//                         <Button asChild variant="outline">
+//                           <Link href={auth.login.url}>{auth.login.title}</Link>
+//                         </Button>
+//                         <Button asChild>
+//                           <Link href={auth.signup.url}>{auth.signup.title}</Link>
+//                         </Button>
+//                       </div>
+//                     )}
+//                   </div>
+//                 </SheetContent>
+//               </Sheet>
+//             </div>
 //           </div>
 //         </div>
-//       )}
-
-//       <div>
-//         <h2 className="text-2xl font-bold mb-6">All Posts</h2>
-//         <div className="grid grid-cols-3 gap-5">
-//           {posts?.error?.message ? (
-//             <p className="text-red-500">{posts?.error?.message}</p>
-//           ) : null}
-//           {posts?.data?.data?.map((post: BlogPost) => (
-//             <BlogCard key={post.id} post={post} />
-//           ))}
-//         </div>
 //       </div>
-//     </div>
+//     </section>
 //   );
-// }
+// };
+
+// const renderMenuItem = (item: MenuItem) => {
+//   return (
+//     <NavigationMenuItem key={item.title}>
+//       <NavigationMenuLink
+//         asChild
+//         className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-muted hover:text-accent-foreground"
+//       >
+//         <Link href={item.url}>{item.title}</Link>
+//       </NavigationMenuLink>
+//     </NavigationMenuItem>
+//   );
+// };
+
+// const renderMobileMenuItem = (item: MenuItem) => {
+//   return (
+//     <Link key={item.title} href={item.url} className="text-md font-semibold">
+//       {item.title}
+//     </Link>
+//   );
+// };
+
+// export { Navbar };
