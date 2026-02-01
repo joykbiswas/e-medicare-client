@@ -9,6 +9,19 @@ export interface UserInfo {
   role: string;
   [key: string]: any; // For any additional fields
 }
+export interface UserProfile {
+  id: string;
+  userId?: string;
+  email: string;
+  name: string;
+  role: string;
+  phone?: string;
+  status?: string;
+  isBanned?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  [key: string]: any;
+}
 
 export const userService = {
   /**
