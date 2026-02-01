@@ -64,33 +64,8 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
-/* =======================
-   Service
-======================= */
-
 export const customerService = {
   /* -------- Get logged-in user -------- */
-//   getMe: async (): Promise<{ data: Me | null; error: string | null }> => {
-//     try {
-//       const res = await fetch(`${API_BASE}/auth/me`, {
-//         credentials: "include",
-//         cache: "no-store", // better than revalidate for auth
-//       });
-//       console.log(res);
-//       const result: ApiResponse<Me> = await res.json();
-//       console.log(result);
-//       if (result.success) {
-//         return { data: result.data, error: null };
-//       }
-
-//       return {
-//         data: null,
-//         error: result.message || "Failed to fetch user",
-//       };
-//     } catch (err) {
-//       return { data: null, error: "Something went wrong" };
-//     }
-//   },
 
 getMe: async () => {
   const res = await fetch("http://localhost:5000/api/auth/me", {
@@ -100,38 +75,26 @@ getMe: async () => {
 },
 
   /* -------- Get customer orders -------- */
-  getOrders: async (): Promise<{
-    data: Order[] | null;
-    pagination: Pagination | null;
-    error: string | null;
-  }> => {
+
+getOrders: async (params?: { page?: number; limit?: number }): Promise<{ data: any[] | null; pagination: Pagination | null; error: string | null }> => {
     try {
-      const res = await fetch(`${API_BASE}/orders`, {
+      const queryParams = new URLSearchParams();
+      if (params?.page) queryParams.set("page", params.page.toString());
+      if (params?.limit) queryParams.set("limit", params.limit.toString());
+      
+      const url = `http://localhost:5000/api/orders?${queryParams.toString()}`;
+      const res = await fetch(url, {
         credentials: "include",
-        next: { revalidate: 0 },
+        cache: "no-store",
       });
-
-      const result: ApiResponse<Order[]> = await res.json();
-
+      const result = await res.json();
+      console.log(result);
       if (result.success) {
-        return {
-          data: result.data,
-          pagination: result.pagination ?? null,
-          error: null,
-        };
+        return { data: result.data, pagination: result.pagination ?? null, error: null };
       }
-
-      return {
-        data: null,
-        pagination: null,
-        error: result.message || "Failed to fetch orders",
-      };
-    } catch {
-      return {
-        data: null,
-        pagination: null,
-        error: "Something went wrong",
-      };
+      return { data: null, pagination: null, error: result.message || "Failed to fetch orders" };
+    } catch (err) {
+      return { data: null, pagination: null, error: "Something went wrong" };
     }
   },
 };
