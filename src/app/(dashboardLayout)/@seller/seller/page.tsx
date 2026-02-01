@@ -1,5 +1,8 @@
-import { redirect } from "next/navigation";
+import { redirect } from 'next/navigation';
+import React from 'react';
 
-export default function SellerDashboard() {
-   redirect("/seller/dashboard");
-}
+const SellerDashboard = () => {
+   redirect("/seller/dashboard")
+};
+
+export default SellerDashboard;

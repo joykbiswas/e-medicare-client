@@ -1,9 +1,49 @@
-import { redirect } from "next/navigation";
+"use client";
+
+import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
-import { Package, ShoppingCart, BarChart3 } from "lucide-react";
+import { Package, ShoppingCart, BarChart3, Loader2 } from "lucide-react";
+import { sellerService, type SellerOrder } from "@/services/seller.service";
 
 export default function SellerDashboardPage() {
+  const [stats, setStats] = useState({
+    totalSales: 0,
+    totalOrders: 0,
+    totalMedicines: 0,
+  });
+  const [recentOrders, setRecentOrders] = useState<SellerOrder[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+    const { data: ordersData, error } = await sellerService.getOrders();
+    const { data: medicinesData } = await sellerService.getMedicines();
+
+    if (ordersData) {
+      const orders = ordersData.orders;
+      setRecentOrders(orders.slice(0, 5));
+      setStats({
+        totalSales: orders.reduce((sum, order) => sum + order.totalAmount, 0),
+        totalOrders: orders.length,
+        totalMedicines: medicinesData?.length || 0,
+      });
+    }
+    setLoading(false);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -13,7 +53,7 @@ export default function SellerDashboardPage() {
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
@@ -22,7 +62,7 @@ export default function SellerDashboardPage() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Total Sales</p>
-                <p className="text-2xl font-bold">৳12,450</p>
+                <p className="text-2xl font-bold">৳{stats.totalSales}</p>
               </div>
             </div>
           </CardContent>
@@ -36,7 +76,7 @@ export default function SellerDashboardPage() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Orders</p>
-                <p className="text-2xl font-bold">24</p>
+                <p className="text-2xl font-bold">{stats.totalOrders}</p>
               </div>
             </div>
           </CardContent>
@@ -50,7 +90,7 @@ export default function SellerDashboardPage() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Medicines</p>
-                <p className="text-2xl font-bold">156</p>
+                <p className="text-2xl font-bold">{stats.totalMedicines}</p>
               </div>
             </div>
           </CardContent>
@@ -89,22 +129,29 @@ export default function SellerDashboardPage() {
         <Card>
           <CardContent className="p-6">
             <h3 className="text-lg font-semibold mb-4">Recent Orders</h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 rounded-lg border">
-                <div>
-                  <p className="font-medium">#ORD-001</p>
-                  <p className="text-sm text-muted-foreground">John Doe - ৳450.00</p>
-                </div>
-                <span className="text-sm text-muted-foreground">Pending</span>
+            {recentOrders.length === 0 ? (
+              <p className="text-muted-foreground">No recent orders</p>
+            ) : (
+              <div className="space-y-3">
+                {recentOrders.slice(0, 4).map((order) => (
+                  <div key={order.id} className="flex items-center justify-between p-3 rounded-lg border">
+                    <div>
+                      <p className="font-medium text-sm">{order.customer.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {order.items.length} item{order.items.length > 1 ? "s" : ""} - ৳{order.totalAmount}
+                      </p>
+                    </div>
+                    <span className="text-xs px-2 py-1 rounded bg-muted">{order.status}</span>
+                  </div>
+                ))}
+                <Link
+                  href="/seller/orders"
+                  className="block text-center text-sm text-primary hover:underline mt-2"
+                >
+                  View all orders
+                </Link>
               </div>
-              <div className="flex items-center justify-between p-3 rounded-lg border">
-                <div>
-                  <p className="font-medium">#ORD-002</p>
-                  <p className="text-sm text-muted-foreground">Jane Smith - ৳120.00</p>
-                </div>
-                <span className="text-sm text-muted-foreground">Processing</span>
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
       </div>

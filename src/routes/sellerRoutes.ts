@@ -14,8 +14,12 @@ export const sellerRoute: Route[] = [
     title: "Product Management",
     items: [
       {
-        title: "Inventory",
+        title: "All Medicine",
         url: "/seller/medicines",
+      },
+      {
+        title: "Create Medicine",
+        url: "/seller/create-medicine",
       },
     ],
   },
