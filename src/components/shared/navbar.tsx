@@ -91,18 +91,24 @@ const Navbar = ({
     const baseMenu = [
       { title: "Home", url: "/" },
       { title: "Shop", url: "/shop" },
-      { title: "Orders", url: "/orders" },
     ];
 
     // Only show Dashboard for Admin and Seller when authenticated
     if (user) {
       const isAdmin = user.role === Role.admin || user.role === "ADMIN";
       const isSeller = user.role === Role.seller || user.role === "SELLER";
+      const isCustomer = user.role === Role.customer || user.role === "CUSTOMER";
 
       if (isAdmin || isSeller) {
         baseMenu.push({
           title: "Dashboard",
           url: isAdmin ? "/admin" : "/seller-dashboard",
+        });
+      }
+      if(isCustomer){
+        baseMenu.push({
+          title: "Orders",
+          url: "/orders",
         });
       }
     }
@@ -112,11 +118,40 @@ const Navbar = ({
 
   const menuItems = getMenuItems();
 
-  const handleLogout = () => {
-    // Clear token cookie
-    document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    router.push("/login");
-    router.refresh();
+  const handleLogout = async () => {
+    // Clear all possible auth-related localStorage items
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("auth_user");
+    localStorage.removeItem("auth_token");
+    
+    // Clear cookies - cookies are set by server on localhost:5000
+    const cookieNames = ["token", "auth_token", "connect.sid", "session_id"];
+    cookieNames.forEach((name) => {
+      // Clear for current domain
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;`;
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.localhost;`;
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=127.0.0.1;`;
+      // Also try with different cookie attributes
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=None; Secure`;
+    });
+    
+    // Clear session storage
+    sessionStorage.clear();
+    
+    // Call logout API to clear server-side cookie
+    try {
+      await fetch("http://localhost:5000/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (e) {
+      // Ignore API errors, continue with logout
+    }
+    
+    // Redirect to login with full page reload
+    window.location.href = "/login";
   };
 
   return (

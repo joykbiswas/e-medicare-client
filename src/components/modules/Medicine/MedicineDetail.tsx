@@ -5,7 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { Field, FieldContent, FieldLabel, FieldError } from "@/components/ui/field";
+import {
+  Field,
+  FieldContent,
+  FieldLabel,
+  FieldError,
+} from "@/components/ui/field";
 import {
   Star,
   ShoppingCart,
@@ -26,17 +31,21 @@ import Image from "next/image";
 import { useState } from "react";
 import { medicineService } from "@/services/medicine.service";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/use-auth";
 
 interface MedicineDetailProps {
   medicine: MedicineDetail;
 }
 
-export function MedicineDetailComponent({ medicine: initialMedicine }: MedicineDetailProps) {
+export function MedicineDetailComponent({
+  medicine: initialMedicine,
+}: MedicineDetailProps) {
   const { addToCart } = useCart();
+  const { isAuthenticated } = useAuth();
   const router = useRouter();
   const [imageError, setImageError] = useState(false);
   const [quantity, setQuantity] = useState(1);
-  
+
   // Review form state
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
@@ -66,7 +75,11 @@ export function MedicineDetailComponent({ medicine: initialMedicine }: MedicineD
       ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
       : 0;
 
-  const renderStars = (rating: number, interactive = false, onStarClick?: (rating: number) => void) => {
+  const renderStars = (
+    rating: number,
+    interactive = false,
+    onStarClick?: (rating: number) => void,
+  ) => {
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 >= 0.5;
     const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
@@ -75,7 +88,9 @@ export function MedicineDetailComponent({ medicine: initialMedicine }: MedicineD
       <div className="flex items-center gap-1">
         {[...Array(5)].map((_, i) => {
           const starValue = i + 1;
-          const isFilled = starValue <= fullStars || (starValue === fullStars + 1 && hasHalfStar);
+          const isFilled =
+            starValue <= fullStars ||
+            (starValue === fullStars + 1 && hasHalfStar);
           const isHalfFilled = starValue === fullStars + 1 && hasHalfStar;
 
           return (
@@ -85,7 +100,11 @@ export function MedicineDetailComponent({ medicine: initialMedicine }: MedicineD
               onClick={() => interactive && onStarClick?.(starValue)}
               onMouseEnter={() => interactive && setHoveredRating(starValue)}
               onMouseLeave={() => interactive && setHoveredRating(0)}
-              className={interactive ? "cursor-pointer transition-transform hover:scale-110" : ""}
+              className={
+                interactive
+                  ? "cursor-pointer transition-transform hover:scale-110"
+                  : ""
+              }
               disabled={!interactive}
             >
               {isFilled && !isHalfFilled ? (
@@ -138,7 +157,7 @@ export function MedicineDetailComponent({ medicine: initialMedicine }: MedicineD
         setRating(0);
         setComment("");
         setHoveredRating(0);
-        
+
         // Refresh the page to get updated reviews
         router.refresh();
       }
@@ -166,7 +185,9 @@ export function MedicineDetailComponent({ medicine: initialMedicine }: MedicineD
                   fill
                   className="object-cover"
                   onError={() => setImageError(true)}
-                  unoptimized={initialMedicine.imageUrl?.includes('example.com')}
+                  unoptimized={initialMedicine.imageUrl?.includes(
+                    "example.com",
+                  )}
                   priority
                 />
               ) : (
@@ -205,9 +226,11 @@ export function MedicineDetailComponent({ medicine: initialMedicine }: MedicineD
             {/* Rating */}
             <div className="flex items-center gap-4">
               {renderStars(averageRating)}
-              <span className="text-lg font-semibold">{averageRating.toFixed(1)}</span>
+              <span className="text-lg font-semibold">
+                {averageRating.toFixed(1)}
+              </span>
               <span className="text-muted-foreground">
-                ({reviews.length} {reviews.length === 1 ? 'review' : 'reviews'})
+                ({reviews.length} {reviews.length === 1 ? "review" : "reviews"})
               </span>
             </div>
           </div>
@@ -275,7 +298,9 @@ export function MedicineDetailComponent({ medicine: initialMedicine }: MedicineD
                   value={quantity}
                   onChange={(e) => {
                     const val = parseInt(e.target.value) || 1;
-                    setQuantity(Math.max(1, Math.min(val, initialMedicine.stock)));
+                    setQuantity(
+                      Math.max(1, Math.min(val, initialMedicine.stock)),
+                    );
                   }}
                   className="w-16 text-center border-0 focus:outline-none focus:ring-0"
                 />
@@ -283,7 +308,9 @@ export function MedicineDetailComponent({ medicine: initialMedicine }: MedicineD
                   variant="outline"
                   size="icon"
                   className="h-10 w-10"
-                  onClick={() => setQuantity(Math.min(initialMedicine.stock, quantity + 1))}
+                  onClick={() =>
+                    setQuantity(Math.min(initialMedicine.stock, quantity + 1))
+                  }
                   disabled={quantity >= initialMedicine.stock}
                 >
                   +
@@ -294,11 +321,20 @@ export function MedicineDetailComponent({ medicine: initialMedicine }: MedicineD
             <Button
               className="w-full h-12 text-lg"
               size="lg"
-              onClick={handleAddToCart}
+              onClick={() => {
+                if (!isAuthenticated) {
+                  // Navigate to login page - adjust based on your routing
+                  router.push("/login"); // If using Next.js router
+                  // or window.location.href = '/login'; // If not using Next.js
+                  // or navigate('/login'); // If using React Router
+                  return;
+                }
+                handleAddToCart();
+              }}
               disabled={!inStock}
             >
               <ShoppingCart className="mr-2 h-5 w-5" />
-              Add to Cart
+              {!isAuthenticated ? "Login to Add to Cart" : "Add to Cart"}
             </Button>
           </div>
 
@@ -339,9 +375,11 @@ export function MedicineDetailComponent({ medicine: initialMedicine }: MedicineD
       {/* Reviews Section */}
       <div className="mt-12 space-y-6">
         <div>
-          <h2 className="text-2xl md:text-3xl font-bold mb-2">Customer Reviews</h2>
+          <h2 className="text-2xl md:text-3xl font-bold mb-2">
+            Customer Reviews
+          </h2>
           <p className="text-muted-foreground">
-            {reviews.length > 0 
+            {reviews.length > 0
               ? "See what our customers are saying about this product"
               : "Be the first to review this product"}
           </p>
@@ -391,7 +429,7 @@ export function MedicineDetailComponent({ medicine: initialMedicine }: MedicineD
                 </FieldContent>
               </Field>
 
-              {reviewError && (rating > 0 && comment.trim()) && (
+              {reviewError && rating > 0 && comment.trim() && (
                 <FieldError>{reviewError}</FieldError>
               )}
 
