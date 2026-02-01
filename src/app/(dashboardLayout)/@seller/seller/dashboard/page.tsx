@@ -23,14 +23,15 @@ export default function SellerDashboardPage() {
     setLoading(true);
     const { data: ordersData, error } = await sellerService.getOrders();
     const { data: medicinesData } = await sellerService.getMedicines();
-
+console.log("medicinesData ", medicinesData);
+console.log("medicinesData length", medicinesData?.medicines);
     if (ordersData) {
       const orders = ordersData.orders;
       setRecentOrders(orders.slice(0, 5));
       setStats({
         totalSales: orders.reduce((sum, order) => sum + order.totalAmount, 0),
         totalOrders: orders.length,
-        totalMedicines: medicinesData?.length || 0,
+        totalMedicines: medicinesData?.pagination?.total || 0,
       });
     }
     setLoading(false);

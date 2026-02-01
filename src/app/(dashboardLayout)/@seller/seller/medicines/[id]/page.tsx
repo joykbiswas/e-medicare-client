@@ -59,7 +59,7 @@ export default function EditMedicinePage() {
     setFetching(true);
     const { data, error } = await sellerService.getMedicines();
     if (data) {
-      const found = data.find((m: any) => m.id === medicineId);
+      const found = data.medicines.find((m: any) => m.id === medicineId);
       if (found) {
         setFormData({
           price: found.price.toString(),
@@ -177,9 +177,7 @@ export default function EditMedicinePage() {
             <Package className="h-5 w-5" />
             Update Medicine
           </CardTitle>
-          <CardDescription>
-            Only price, stock, and manufacturer can be updated
-          </CardDescription>
+          
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">

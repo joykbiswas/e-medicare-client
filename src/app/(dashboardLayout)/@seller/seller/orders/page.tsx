@@ -24,11 +24,21 @@ import {
   Loader2,
   User,
   MapPin,
-  X,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 import { sellerService, type SellerOrder } from "@/services/seller.service";
 import { toast } from "sonner";
 import Image from "next/image";
+
+interface PaginationData {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
 
 export default function SellerOrdersPage() {
   const [orders, setOrders] = useState<SellerOrder[]>([]);
@@ -36,6 +46,13 @@ export default function SellerOrdersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [updatingOrder, setUpdatingOrder] = useState<string | null>(null);
+  const [pagination, setPagination] = useState<PaginationData>({
+    total: 0,
+    page: 1,
+    limit: 10,
+    totalPages: 1,
+  });
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     fetchOrders();
@@ -46,6 +63,7 @@ export default function SellerOrdersPage() {
     const { data, error } = await sellerService.getOrders();
     if (data) {
       setOrders(data.orders);
+      setPagination(data.pagination);
     } else if (error) {
       toast.error(error);
     }
@@ -75,6 +93,10 @@ export default function SellerOrdersPage() {
     return <Badge variant={variants[status] || "secondary"}>{status}</Badge>;
   };
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =
       order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -84,7 +106,7 @@ export default function SellerOrdersPage() {
     return matchesSearch && matchesStatus;
   });
 
-  if (loading) {
+  if (loading && orders.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -95,10 +117,8 @@ export default function SellerOrdersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Orders</h1>
-        <p className="text-muted-foreground">
-          Manage and update order statuses
-        </p>
+        <h1 className="text-3xl font-bold">Orders ({pagination.total})</h1>
+        
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
@@ -130,125 +150,176 @@ export default function SellerOrdersPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
-            All Orders ({filteredOrders.length})
+            All Orders
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {filteredOrders.length === 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center h-32">
+              <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
+          ) : filteredOrders.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               No orders found
             </div>
           ) : (
-            <Accordion type="single" collapsible className="w-full">
-              {filteredOrders.map((order) => (
-                <AccordionItem key={order.id} value={order.id}>
-                  <AccordionTrigger className="hover:no-underline px-4">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full text-left">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">
-                          {order.customer.name} ({order.customer.email})
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {new Date(order.createdAt).toLocaleDateString()} • {order.items.length} item{order.items.length > 1 ? "s" : ""}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="font-semibold">৳{order.totalAmount}</span>
-                        {getStatusBadge(order.status)}
-                      </div>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="px-4 pb-4 space-y-4">
-                      {/* Customer Info */}
-                      <div className="grid gap-4 sm:grid-cols-2 p-4 bg-muted/30 rounded-lg">
-                        <div className="flex items-start gap-2">
-                          <User className="h-4 w-4 mt-0.5 text-muted-foreground" />
-                          <div>
-                            <p className="font-medium">Customer</p>
-                            <p className="text-sm text-muted-foreground">{order.customer.name}</p>
-                            <p className="text-sm text-muted-foreground">{order.customer.email}</p>
-                          </div>
+            <>
+              <Accordion type="single" collapsible className="w-full">
+                {filteredOrders.map((order) => (
+                  <AccordionItem key={order.id} value={order.id}>
+                    <AccordionTrigger className="hover:no-underline px-4">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full text-left">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">
+                            {order.customer.name} ({order.customer.email})
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {new Date(order.createdAt).toLocaleDateString()} • {order.items.length} item{order.items.length > 1 ? "s" : ""}
+                          </p>
                         </div>
-                        <div className="flex items-start gap-2">
-                          <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground" />
-                          <div>
-                            <p className="font-medium">Shipping Address</p>
-                            <p className="text-sm text-muted-foreground">{order.shippingAddress}</p>
-                          </div>
+                        <div className="flex items-center gap-3">
+                          <span className="font-semibold">৳{order.totalAmount}</span>
+                          {getStatusBadge(order.status)}
                         </div>
                       </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="px-4 pb-4 space-y-4">
+                        {/* Customer Info */}
+                        <div className="grid gap-4 sm:grid-cols-2 p-4 bg-muted/30 rounded-lg">
+                          <div className="flex items-start gap-2">
+                            <User className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                            <div>
+                              <p className="font-medium">Customer</p>
+                              <p className="text-sm text-muted-foreground">Name: {order.customer.name}</p>
+                              <p className="text-sm text-muted-foreground">Email: {order.customer.email}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-2">
+                            <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                            <div>
+                              <p className="font-medium">Shipping Address</p>
+                              <p className="text-sm text-muted-foreground">{order.shippingAddress}</p>
+                            </div>
+                          </div>
+                        </div>
 
-                      {/* Medicine Items */}
-                      <div className="space-y-3">
-                        <p className="font-medium">Order Items</p>
-                        {order.items.map((item) => (
-                          <div
-                            key={item.id}
-                            className="flex items-center gap-4 p-3 border rounded-lg"
-                          >
-                            {item.medicine.imageUrl ? (
-                              <Image
-                                src={item.medicine.imageUrl}
-                                alt={item.medicine.name}
-                                width={60}
-                                height={60}
-                                className="rounded-lg object-cover"
-                              />
-                            ) : (
-                              <div className="h-[60px] w-[60px] rounded-lg bg-muted flex items-center justify-center">
-                                <Package className="h-6 w-6 text-muted-foreground" />
+                        {/* Medicine Items */}
+                        <div className="space-y-3">
+                          <p className="font-medium">Order Items</p>
+                          {order.items.map((item) => (
+                            <div
+                              key={item.id}
+                              className="flex items-center gap-4 p-3 border rounded-lg"
+                            >
+                              {item.medicine.imageUrl ? (
+                                <Image
+                                  src={item.medicine.imageUrl}
+                                  alt={item.medicine.name}
+                                  width={60}
+                                  height={60}
+                                  className="rounded-lg object-cover"
+                                />
+                              ) : (
+                                <div className="h-[60px] w-[60px] rounded-lg bg-muted flex items-center justify-center">
+                                  <Package className="h-6 w-6 text-muted-foreground" />
+                                </div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium">{item.medicine.name}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {item.medicine.manufacturer}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  Qty: {item.quantity} × ৳{item.price}
+                                </p>
                               </div>
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium">{item.medicine.name}</p>
-                              <p className="text-sm text-muted-foreground">
-                                {item.medicine.manufacturer}
-                              </p>
-                              <p className="text-sm text-muted-foreground">
-                                Qty: {item.quantity} × ৳{item.price}
-                              </p>
+                              <div className="text-right">
+                                <p className="font-medium">৳{item.quantity * item.price}</p>
+                              </div>
                             </div>
-                            <div className="text-right">
-                              <p className="font-medium">৳{item.quantity * item.price}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
 
-                      {/* Update Status */}
-                      <div className="flex items-center justify-between pt-4 border-t">
-                        <div className="text-sm text-muted-foreground">
-                          Order ID: {order.id}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-muted-foreground">Update Status:</span>
-                          <Select
-                            value={order.status}
-                            onValueChange={(value) => handleStatusUpdate(order.id, value)}
-                            disabled={updatingOrder === order.id}
-                          >
-                            <SelectTrigger className="w-36 h-8">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="PLACED">Placed</SelectItem>
-                              <SelectItem value="PROCESSING">Processing</SelectItem>
-                              <SelectItem value="SHIPPED">Shipped</SelectItem>
-                              <SelectItem value="DELIVERED">Delivered</SelectItem>
-                              <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          {updatingOrder === order.id && (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          )}
+                        {/* Update Status */}
+                        <div className="flex items-center justify-between pt-4 border-t">
+                          <div className="text-sm text-muted-foreground">
+                           
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-muted-foreground">Update Status:</span>
+                            <Select
+                              value={order.status}
+                              onValueChange={(value) => handleStatusUpdate(order.id, value)}
+                              disabled={updatingOrder === order.id}
+                            >
+                              <SelectTrigger className="w-36 h-8">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="PLACED">Placed</SelectItem>
+                                <SelectItem value="PROCESSING">Processing</SelectItem>
+                                <SelectItem value="SHIPPED">Shipped</SelectItem>
+                                <SelectItem value="DELIVERED">Delivered</SelectItem>
+                                <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            {updatingOrder === order.id && (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+
+              <div className="flex items-center justify-between px-2 py-4 border-t mt-4">
+                <div className="text-sm text-muted-foreground">
+                  Showing {Math.min(((currentPage - 1) * pagination.limit) + 1, pagination.total)} to {Math.min(currentPage * pagination.limit, pagination.total)} of {pagination.total} orders
+                </div>
+                {pagination.totalPages > 1 && (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => handlePageChange(1)}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronsLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <span className="text-sm font-medium">
+                      Page {currentPage} of {pagination.totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === pagination.totalPages}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => handlePageChange(pagination.totalPages)}
+                      disabled={currentPage === pagination.totalPages}
+                    >
+                      <ChevronsRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

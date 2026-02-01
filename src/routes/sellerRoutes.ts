@@ -32,4 +32,14 @@ export const sellerRoute: Route[] = [
       },
     ],
   },
+  {
+    title: "Home",
+    items: [
+      {
+        title: "Home",
+        url: "/",
+      },
+    ],
+  },
+  
 ];

@@ -102,16 +102,39 @@ export const sellerService = {
     }
   },
 
-  getMedicines: async (): Promise<{ data: any[] | null; error: string | null }> => {
+  getMedicines: async (params?: {
+    page?: number;
+    limit?: number;
+  }): Promise<{ data: { medicines: any[]; pagination: any } | null; error: string | null }> => {
     try {
-      const res = await fetch(`${API_BASE}/seller/medicines`, {
+      const url = new URL(`${API_BASE}/seller/medicines`);
+      if (params) {
+        Object.entries(params).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            url.searchParams.append(key, value.toString());
+          }
+        });
+      }
+
+      const res = await fetch(url.toString(), {
         credentials: "include",
         next: { revalidate: 0 },
       });
       const result: ApiResponse<any[]> = await res.json();
 
       if (result.success) {
-        return { data: result.data, error: null };
+        return {
+          data: {
+            medicines: result.data,
+            pagination: result.pagination || {
+              total: result.data.length,
+              page: 1,
+              limit: 10,
+              totalPages: 1,
+            },
+          },
+          error: null,
+        };
       }
       return { data: null, error: "Failed to fetch medicines" };
     } catch (err) {
