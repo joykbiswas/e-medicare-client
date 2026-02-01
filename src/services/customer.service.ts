@@ -68,7 +68,7 @@ export const customerService = {
   /* -------- Get logged-in user -------- */
 
 getMe: async () => {
-  const res = await fetch("http://localhost:5000/api/auth/me", {
+  const res = await fetch(`${API_BASE}/auth/me`, {
     credentials: "include",
   });
   return res.json();
@@ -82,7 +82,7 @@ getOrders: async (params?: { page?: number; limit?: number }): Promise<{ data: a
       if (params?.page) queryParams.set("page", params.page.toString());
       if (params?.limit) queryParams.set("limit", params.limit.toString());
       
-      const url = `http://localhost:5000/api/orders?${queryParams.toString()}`;
+      const url = `${API_BASE}/orders?${queryParams.toString()}`;
       const res = await fetch(url, {
         credentials: "include",
         cache: "no-store",
@@ -102,7 +102,7 @@ getOrders: async (params?: { page?: number; limit?: number }): Promise<{ data: a
 
   createOrder: async (data: { shippingAddress: string; items: { medicineId: string; quantity: number }[] }): Promise<{ success: boolean; data: any; error: string | null }> => {
     try {
-      const res = await fetch("http://localhost:5000/api/orders", {
+      const res = await fetch(`${API_BASE}/orders`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

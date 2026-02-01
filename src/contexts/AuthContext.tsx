@@ -1,25 +1,37 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import React, { createContext, useContext, useEffect, useState, useRef } from "react";
 import { decodeJWT } from "@/lib/jwt";
 import type { UserInfo } from "@/services/user.services";
 
-export function useAuth() {
+interface AuthContextType {
+  user: UserInfo | null;
+  loading: boolean;
+  isAuthenticated: boolean;
+  resetAuth: () => void;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const lastTokenRef = useRef<string | null>(null);
 
-  console.log("useAuth hook initialized - loading:", loading);
+  const resetAuth = () => {
+    console.log("Resetting auth state...");
+    lastTokenRef.current = null;
+    setUser(null);
+    setLoading(false);
+  };
 
   useEffect(() => {
     const checkAuth = () => {
-      console.log("checkAuth called");
       try {
         let token: string | null = null;
 
         // 1️⃣ Get token from localStorage
         token = localStorage.getItem("token");
-        console.log("Token from localStorage:", token);
 
         // 2️⃣ Fallback to cookies
         if (!token) {
@@ -27,12 +39,10 @@ export function useAuth() {
             .split(";")
             .find(c => c.trim().startsWith("token="));
           token = tokenCookie?.split("=")[1] ?? null;
-          console.log("Token from cookie:", token);
         }
 
         // 🔒 No token
         if (!token) {
-          console.log("No token found, setting user to null");
           lastTokenRef.current = null;
           setUser(null);
           setLoading(false);
@@ -41,16 +51,13 @@ export function useAuth() {
 
         // 🛑 Token unchanged → DO NOTHING
         if (token === lastTokenRef.current) {
-          console.log("Token unchanged, keeping current state");
           setLoading(false);
           return;
         }
 
         lastTokenRef.current = token;
-        console.log("New token found, decoding...");
 
         const decoded = decodeJWT(token);
-        console.log("Decoded token:", decoded);
         if (!decoded) {
           setUser(null);
           setLoading(false);
@@ -65,7 +72,6 @@ export function useAuth() {
           role: decoded.role || "CUSTOMER",
         };
 
-        console.log("Setting user:", userInfo);
         setUser(userInfo);
         setLoading(false);
       } catch (err) {
@@ -77,19 +83,43 @@ export function useAuth() {
 
     checkAuth();
 
+    // Listen for custom auth change event
+    const handleAuthChange = () => {
+      console.log("Custom auth change event received");
+      lastTokenRef.current = null; // Force re-check
+      checkAuth();
+    };
+
     // ✅ React to login/logout only
     window.addEventListener("storage", checkAuth);
     window.addEventListener("focus", checkAuth);
+    window.addEventListener("auth:change", handleAuthChange);
 
     return () => {
       window.removeEventListener("storage", checkAuth);
       window.removeEventListener("focus", checkAuth);
+      window.removeEventListener("auth:change", handleAuthChange);
     };
   }, []);
 
-  return {
-    user,
-    loading,
-    isAuthenticated: !!user,
-  };
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        isAuthenticated: !!user,
+        resetAuth,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuthContext() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuthContext must be used within an AuthProvider");
+  }
+  return context;
 }

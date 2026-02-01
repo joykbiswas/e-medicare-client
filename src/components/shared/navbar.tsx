@@ -29,7 +29,7 @@ import { ModeToggle } from "./ModeToggle";
 import { useCart } from "@/contexts/CartContext";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuthContext } from "@/contexts/AuthContext";
 import { Role } from "@/constants/roles";
 
 interface MenuItem {
@@ -81,7 +81,7 @@ const Navbar = ({
   console.log("items - ", items);
 
   const router = useRouter();
-  const { user, loading, isAuthenticated } = useAuth();
+  const { user, loading, isAuthenticated } = useAuthContext();
   console.log("User - Nav", user);
   console.log("isAuthenticated", isAuthenticated);
   const totalItems = getTotalItems();
@@ -150,8 +150,11 @@ const Navbar = ({
       // Ignore API errors, continue with logout
     }
     
-    // Redirect to login with full page reload
-    window.location.href = "/login";
+    // Dispatch custom event to notify auth context
+    window.dispatchEvent(new Event("auth:change"));
+    
+    router.push("/login");
+    router.refresh();
   };
 
   return (

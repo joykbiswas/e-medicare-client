@@ -31,7 +31,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { medicineService } from "@/services/medicine.service";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuthContext } from "@/contexts/AuthContext";
 
 interface MedicineDetailProps {
   medicine: MedicineDetail;
@@ -41,7 +41,51 @@ export function MedicineDetailComponent({
   medicine: initialMedicine,
 }: MedicineDetailProps) {
   const { addToCart } = useCart();
-  const { isAuthenticated } = useAuth();
+  const { user, loading, isAuthenticated } = useAuthContext();
+
+  console.log("useAuthContext - user:", user);
+  console.log("useAuthContext - loading:", loading);
+  console.log("useAuthContext - isAuthenticated:", isAuthenticated);
+
+  // Show loading skeleton while auth is loading
+  if (loading) {
+    console.log("Showing loading skeleton...");
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 animate-pulse">
+          <div className="aspect-square bg-muted rounded-lg" />
+          <div className="space-y-4">
+            <div className="h-10 bg-muted rounded w-3/4" />
+            <div className="h-6 bg-muted rounded w-24" />
+            <div className="h-12 bg-muted rounded w-32" />
+            <div className="h-20 bg-muted rounded w-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  console.log("Auth loaded - user:", user, "isAuthenticated:", isAuthenticated);
+
+  // Show loading skeleton while auth is loading
+  // if (loading) {
+  //   console.log("Showing loading skeleton...");
+  //   return (
+  //     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+  //       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 animate-pulse">
+  //         <div className="aspect-square bg-muted rounded-lg" />
+  //         <div className="space-y-4">
+  //           <div className="h-10 bg-muted rounded w-3/4" />
+  //           <div className="h-6 bg-muted rounded w-24" />
+  //           <div className="h-12 bg-muted rounded w-32" />
+  //           <div className="h-20 bg-muted rounded w-full" />
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
+
+  // console.log("Auth loaded - user:", user, "isAuthenticated:", isAuthenticated);
   const router = useRouter();
   const [imageError, setImageError] = useState(false);
   const [quantity, setQuantity] = useState(1);

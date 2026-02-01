@@ -5,6 +5,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeWrapper } from "@/providers/ThemeWrapper";
 import { CartProvider } from "@/contexts/CartContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,10 +33,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ThemeWrapper>
-          <CartProvider>
-            {children}
-            <Toaster richColors />
-          </CartProvider>
+          <AuthProvider>
+            <CartProvider>
+              {children}
+              <Toaster richColors />
+            </CartProvider>
+          </AuthProvider>
         </ThemeWrapper>
       </body>
     </html>
