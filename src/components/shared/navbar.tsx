@@ -102,7 +102,7 @@ const Navbar = ({
       if (isAdmin || isSeller) {
         baseMenu.push({
           title: "Dashboard",
-          url: isAdmin ? "/admin" : "/seller-dashboard",
+          url: isAdmin ? "/admin" : "/seller",
         });
       }
       if(isCustomer){

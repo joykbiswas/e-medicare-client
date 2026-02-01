@@ -63,7 +63,7 @@ export async function proxy(request: NextRequest) {
         pathname.startsWith("/admin-dashboard") ||
         pathname.startsWith("/customer-dashboard")
       ) {
-        return NextResponse.redirect(new URL("/seller-dashboard", request.url));
+        return NextResponse.redirect(new URL("/seller/dashboard", request.url));
       }
     }
   }
