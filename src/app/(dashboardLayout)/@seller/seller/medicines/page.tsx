@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
 import {
   Plus,
   Search,
@@ -14,13 +15,26 @@ import {
   Package,
 } from "lucide-react";
 import { sellerService } from "@/services/seller.service";
-import { toast } from "sonner";
+import Swal from "sweetalert2";
+
+interface Medicine {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  stock: number;
+  manufacturer: string;
+  imageUrl: string | null;
+  categoryId: string;
+  sellerId: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export default function SellerMedicinesPage() {
-  const [medicines, setMedicines] = useState<any[]>([]);
+  const [medicines, setMedicines] = useState<Medicine[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [showAddForm, setShowAddForm] = useState(false);
 
   useEffect(() => {
     fetchMedicines();
@@ -31,21 +45,40 @@ export default function SellerMedicinesPage() {
     const { data, error } = await sellerService.getMedicines();
     if (data) {
       setMedicines(data);
-    } else if (error) {
-      toast.error(error);
     }
     setLoading(false);
   };
 
-  const handleDelete = async (medicineId: string) => {
-    if (!confirm("Are you sure you want to delete this medicine?")) return;
-    
-    const { error } = await sellerService.deleteMedicine(medicineId);
-    if (error) {
-      toast.error(error);
-    } else {
-      toast.success("Medicine deleted");
-      fetchMedicines();
+  const handleDelete = async (medicineId: string, medicineName: string) => {
+    const result = await Swal.fire({
+      title: "Delete Medicine?",
+      text: `Are you sure you want to delete "${medicineName}"? This action cannot be undone.`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+    });
+
+    if (result.isConfirmed) {
+      const { error } = await sellerService.deleteMedicine(medicineId);
+      if (error) {
+        Swal.fire({
+          icon: "error",
+          title: "Error!",
+          text: error,
+        });
+      } else {
+        Swal.fire({
+          icon: "success",
+          title: "Deleted!",
+          text: "Medicine has been deleted.",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+        fetchMedicines();
+      }
     }
   };
 
@@ -71,34 +104,13 @@ export default function SellerMedicinesPage() {
             Manage your medicines and stock
           </p>
         </div>
-        <Button onClick={() => setShowAddForm(!showAddForm)}>
-          <Plus className="mr-2 h-4 w-4" />
-          {showAddForm ? "Cancel" : "Add Medicine"}
-        </Button>
+        <Link href="/seller/create-medicine">
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Medicine
+          </Button>
+        </Link>
       </div>
-
-      {showAddForm && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Add New Medicine</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Input placeholder="Medicine Name" id="medicineName" />
-              <Input placeholder="Description" id="medicineDescription" />
-              <Input placeholder="Price" type="number" id="medicinePrice" />
-              <Input placeholder="Stock" type="number" id="medicineStock" />
-              <Input placeholder="Manufacturer" className="sm:col-span-2" id="medicineManufacturer" />
-              <Button 
-                className="sm:col-span-2" 
-                onClick={() => toast.info("Form submission coming soon")}
-              >
-                Save Medicine
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       <div className="relative w-full sm:w-80">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -171,13 +183,15 @@ export default function SellerMedicinesPage() {
                         </td>
                         <td className="p-4 text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <Button variant="outline" size="icon">
-                              <Edit className="h-4 w-4" />
-                            </Button>
+                            <Link href={`/seller/medicines/${medicine.id}`}>
+                              <Button variant="outline" size="icon">
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </Link>
                             <Button
                               variant="destructive"
                               size="icon"
-                              onClick={() => handleDelete(medicine.id)}
+                              onClick={() => handleDelete(medicine.id, medicine.name)}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>

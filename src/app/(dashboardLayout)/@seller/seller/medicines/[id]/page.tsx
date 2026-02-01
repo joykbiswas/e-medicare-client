@@ -1,35 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Loader2, ArrowLeft, Package } from "lucide-react";
 import { sellerService } from "@/services/seller.service";
-import { medicineService } from "@/services/medicine.service";
-import { useAuthContext } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import Swal from "sweetalert2";
 import { z } from "zod";
 
-interface Category {
-  id: string;
-  name: string;
-}
-
-// Zod schema for medicine validation
-const medicineSchema = z.object({
-  name: z.string().min(2, "Medicine name must be at least 2 characters"),
-  description: z.string().optional(),
+const editMedicineSchema = z.object({
   price: z.string().min(1, "Price is required").transform((val) => {
     const num = parseFloat(val);
     if (isNaN(num) || num <= 0) throw new Error("Price must be greater than 0");
@@ -41,58 +24,69 @@ const medicineSchema = z.object({
     return num;
   }),
   manufacturer: z.string().min(2, "Manufacturer name must be at least 2 characters"),
-  imageUrl: z.string().optional().or(z.literal("")),
-  categoryId: z.string().min(1, "Please select a category"),
 });
 
-type MedicineFormData = z.infer<typeof medicineSchema>;
+type EditMedicineFormData = z.infer<typeof editMedicineSchema>;
 
-// Keep form as string for input handling
 interface FormData {
-  name: string;
-  description: string;
   price: string;
   stock: string;
   manufacturer: string;
-  imageUrl: string;
-  categoryId: string;
 }
 
-export default function CreateMedicinePage() {
+export default function EditMedicinePage() {
   const router = useRouter();
-  const { user } = useAuthContext();
+  const params = useParams();
+  const medicineId = params?.id as string;
+  
   const [loading, setLoading] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [fetchingCategories, setFetchingCategories] = useState(true);
+  const [fetching, setFetching] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [formData, setFormData] = useState<FormData>({
-    name: "",
-    description: "",
     price: "",
     stock: "",
     manufacturer: "",
-    imageUrl: "",
-    categoryId: "",
   });
 
   useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  const fetchCategories = async () => {
-    setFetchingCategories(true);
-    const { data, error } = await medicineService.getCategories();
-    if (data) {
-      setCategories(data);
+    if (medicineId) {
+      fetchMedicine();
     }
-    setFetchingCategories(false);
+  }, [medicineId]);
+
+  const fetchMedicine = async () => {
+    setFetching(true);
+    const { data, error } = await sellerService.getMedicines();
+    if (data) {
+      const found = data.find((m: any) => m.id === medicineId);
+      if (found) {
+        setFormData({
+          price: found.price.toString(),
+          stock: found.stock.toString(),
+          manufacturer: found.manufacturer,
+        });
+      } else {
+        await Swal.fire({
+          icon: "error",
+          title: "Not Found",
+          text: "Medicine not found",
+        });
+        router.push("/seller/medicines");
+      }
+    } else if (error) {
+      await Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error,
+      });
+    }
+    setFetching(false);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -104,7 +98,7 @@ export default function CreateMedicinePage() {
 
   const validate = (): boolean => {
     try {
-      medicineSchema.parse(formData);
+      editMedicineSchema.parse(formData);
       setErrors({});
       return true;
     } catch (error) {
@@ -125,42 +119,43 @@ export default function CreateMedicinePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!user) {
-      toast.error("Please login to create a medicine");
-      return;
-    }
-
     if (!validate()) {
       return;
     }
 
     setLoading(true);
 
-    // Parse the validated data
-    const validatedData = medicineSchema.parse(formData);
+    const validatedData = editMedicineSchema.parse(formData);
 
-    const payload = {
-      name: validatedData.name,
-      description: validatedData.description || undefined,
-      price: validatedData.price,
-      stock: validatedData.stock,
-      manufacturer: validatedData.manufacturer,
-      imageUrl: validatedData.imageUrl || undefined,
-      categoryId: validatedData.categoryId,
-      sellerId: user.id,
-    };
-
-    const { error } = await sellerService.addMedicine(payload);
+    const { error } = await sellerService.updateMedicine(medicineId, validatedData);
 
     if (error) {
-      toast.error(error);
+      await Swal.fire({
+        icon: "error",
+        title: "Error!",
+        text: error,
+      });
     } else {
-      toast.success("Medicine created successfully");
+      await Swal.fire({
+        icon: "success",
+        title: "Success!",
+        text: "Medicine updated successfully",
+        timer: 2000,
+        showConfirmButton: false,
+      });
       router.push("/seller/medicines");
     }
 
     setLoading(false);
   };
+
+  if (fetching) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -169,9 +164,9 @@ export default function CreateMedicinePage() {
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold">Add New Medicine</h1>
+          <h1 className="text-3xl font-bold">Edit Medicine</h1>
           <p className="text-muted-foreground">
-            Fill in the details to add a new medicine to your inventory
+            Update medicine details
           </p>
         </div>
       </div>
@@ -180,75 +175,14 @@ export default function CreateMedicinePage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
-            Medicine Details
+            Update Medicine
           </CardTitle>
           <CardDescription>
-            All fields marked with * are required
+            Only price, stock, and manufacturer can be updated
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="name">Medicine Name *</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  placeholder="e.g., Paracetamol 500mg"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className={errors.name ? "border-red-500" : ""}
-                />
-                {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="categoryId">Category *</Label>
-                <Select
-                  value={formData.categoryId}
-                  onValueChange={(value) => {
-                    setFormData((prev) => ({ ...prev, categoryId: value }));
-                    setErrors((prev) => {
-                      const newErrors = { ...prev };
-                      delete newErrors.categoryId;
-                      return newErrors;
-                    });
-                  }}
-                >
-                  <SelectTrigger id="categoryId" className={errors.categoryId ? "border-red-500" : ""}>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {fetchingCategories ? (
-                      <div className="flex items-center justify-center p-2">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      </div>
-                    ) : (
-                      categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-                {errors.categoryId && <p className="text-sm text-red-500">{errors.categoryId}</p>}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                name="description"
-                placeholder="Describe the medicine..."
-                value={formData.description}
-                onChange={handleChange}
-                rows={3}
-              />
-            </div>
-
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="price">Price (৳) *</Label>
@@ -298,20 +232,6 @@ export default function CreateMedicinePage() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="imageUrl">Image URL</Label>
-              <Input
-                id="imageUrl"
-                name="imageUrl"
-                type="url"
-                placeholder="https://example.com/image.jpg"
-                value={formData.imageUrl}
-                onChange={handleChange}
-                className={errors.imageUrl ? "border-red-500" : ""}
-              />
-              {errors.imageUrl && <p className="text-sm text-red-500">{errors.imageUrl}</p>}
-            </div>
-
             <div className="flex items-center justify-end gap-4 pt-4">
               <Button variant="outline" type="button" onClick={() => router.back()}>
                 Cancel
@@ -320,12 +240,12 @@ export default function CreateMedicinePage() {
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating...
+                    Updating...
                   </>
                 ) : (
                   <>
                     <Package className="mr-2 h-4 w-4" />
-                    Create Medicine
+                    Update Medicine
                   </>
                 )}
               </Button>
