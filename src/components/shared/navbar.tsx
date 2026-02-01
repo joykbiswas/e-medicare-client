@@ -78,6 +78,8 @@ const Navbar = ({
   className,
 }: NavbarProps) => {
   const { getTotalItems, items, getTotalPrice, removeFromCart } = useCart();
+  console.log("items - ", items);
+
   const router = useRouter();
   const { user, loading, isAuthenticated } = useAuth();
   console.log("User - Nav", user);
@@ -89,7 +91,6 @@ const Navbar = ({
     const baseMenu = [
       { title: "Home", url: "/" },
       { title: "Shop", url: "/shop" },
-      { title: "Cart", url: "/cart" },
       { title: "Orders", url: "/orders" },
     ];
 
@@ -148,79 +149,20 @@ const Navbar = ({
           <div className="flex gap-2 items-center">
             <ModeToggle />
 
-            {/* Cart Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="relative">
-                  <ShoppingCart className="h-5 w-5" />
-                  {totalItems > 0 && (
-                    <Badge
-                      variant="destructive"
-                      className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
-                    >
-                      {totalItems}
-                    </Badge>
-                  )}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-80">
-                <div className="p-4">
-                  <h4 className="font-semibold mb-4">Shopping Cart</h4>
-                  {items.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-4">
-                      Your cart is empty
-                    </p>
-                  ) : (
-                    <>
-                      <div className="space-y-3 max-h-64 overflow-y-auto">
-                        {items.map((item) => (
-                          <div
-                            key={item.id}
-                            className="flex items-center justify-between gap-2 p-2 rounded-lg hover:bg-muted"
-                          >
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium truncate">
-                                {item.name}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                Qty: {item.quantity} × ৳{item.price}
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-semibold">
-                                ৳{item.price * item.quantity}
-                              </span>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6"
-                                onClick={() => removeFromCart(item.id)}
-                              >
-                                ×
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="border-t mt-4 pt-4">
-                        <div className="flex justify-between items-center mb-4">
-                          <span className="font-semibold">Total:</span>
-                          <span className="font-bold text-lg">
-                            ৳{getTotalPrice()}
-                          </span>
-                        </div>
-                        <Button
-                          className="w-full"
-                          onClick={() => router.push("/checkout")}
-                        >
-                          Checkout
-                        </Button>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {/* Cart Link */}
+            <Link href="/cart">
+              <Button variant="outline" size="icon" className="relative">
+                <ShoppingCart className="h-5 w-5" />
+                {totalItems > 0 && (
+                  <Badge
+                    variant="destructive"
+                    className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                  >
+                    {totalItems}
+                  </Badge>
+                )}
+              </Button>
+            </Link>
 
             {/* Show User Menu if authenticated, otherwise show Login/Register */}
             {loading ? (

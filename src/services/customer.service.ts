@@ -97,4 +97,24 @@ getOrders: async (params?: { page?: number; limit?: number }): Promise<{ data: a
       return { data: null, pagination: null, error: "Something went wrong" };
     }
   },
+
+  /* -------- Create order -------- */
+
+  createOrder: async (data: { shippingAddress: string; items: { medicineId: string; quantity: number }[] }): Promise<{ success: boolean; data: any; error: string | null }> => {
+    try {
+      const res = await fetch("http://localhost:5000/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+      const result = await res.json();
+      if (result.success) {
+        return { success: true, data: result.data, error: null };
+      }
+      return { success: false, data: null, error: result.message || "Failed to create order" };
+    } catch (err) {
+      return { success: false, data: null, error: "Something went wrong" };
+    }
+  },
 };
