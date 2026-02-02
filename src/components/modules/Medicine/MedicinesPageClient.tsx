@@ -83,7 +83,7 @@ export function MedicinesPageClient({
       params.delete("search");
     }
     params.delete("page"); // Reset to page 1 on new search
-    router.push(`/medicines?${params.toString()}`);
+    router.push(`/shop?${params.toString()}`);
   };
 
   const handleCategoryChange = async (categoryId: string) => {

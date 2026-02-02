@@ -68,46 +68,56 @@ export const customerService = {
   /* -------- Get logged-in user -------- */
 
 getMe: async () => {
-  const res = await fetch(`${API_BASE}/auth/me`, {
-    credentials: "include",
-  });
-  return res.json();
-},
+    const token = localStorage.getItem("token");
+    const res = await fetch(`${API_BASE}/auth/me`, {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      },
+    });
+    return res.json();
+  },
+
 
   /* -------- Get customer orders -------- */
-
 getOrders: async (params?: { page?: number; limit?: number }): Promise<{ data: any[] | null; pagination: Pagination | null; error: string | null }> => {
-    try {
-      const queryParams = new URLSearchParams();
-      if (params?.page) queryParams.set("page", params.page.toString());
-      if (params?.limit) queryParams.set("limit", params.limit.toString());
-      
-      const url = `${API_BASE}/orders?${queryParams.toString()}`;
-      const res = await fetch(url, {
-        credentials: "include",
-        cache: "no-store",
-      });
-      const result = await res.json();
-      console.log(result);
-      if (result.success) {
-        return { data: result.data, pagination: result.pagination ?? null, error: null };
-      }
-      return { data: null, pagination: null, error: result.message || "Failed to fetch orders" };
-    } catch (err) {
-      return { data: null, pagination: null, error: "Something went wrong" };
+  try {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.set("page", params.page.toString());
+    if (params?.limit) queryParams.set("limit", params.limit.toString());
+    
+    const token = localStorage.getItem("token");
+    const url = `${API_BASE}/orders?${queryParams.toString()}`;
+    const res = await fetch(url, {
+      headers: {
+        "Authorization": `Bearer ${token}`  // ✅ Add this
+      },
+      cache: "no-store",
+    });
+    const result = await res.json();
+    console.log(result);
+    if (result.success) {
+      return { data: result.data, pagination: result.pagination ?? null, error: null };
     }
-  },
+    return { data: null, pagination: null, error: result.message || "Failed to fetch orders" };
+  } catch (err) {
+    return { data: null, pagination: null, error: "Something went wrong" };
+  }
+},
 
   /* -------- Create order -------- */
 
-  createOrder: async (data: { shippingAddress: string; items: { medicineId: string; quantity: number }[] }): Promise<{ success: boolean; data: any; error: string | null }> => {
-    try {
-      const res = await fetch(`${API_BASE}/orders`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(data),
-      });
+  createOrder: async (data: { shippingAddress: string; items: { medicineId: string; quantity: number }[] }) => {
+  try {
+    const token = localStorage.getItem("token");
+    const res = await fetch(`${API_BASE}/orders`, {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      // credentials: "include", // Remove this
+      body: JSON.stringify(data),
+    });
       const result = await res.json();
       if (result.success) {
         return { success: true, data: result.data, error: null };

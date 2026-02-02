@@ -4,11 +4,14 @@ export async function apiRequest(
   path: string,
   options: RequestInit = {}
 ) {
+  // Get token from localStorage
+  const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
+  
   const res = await fetch(`${API_BASE}${path}`, {
     headers: {
       "Content-Type": "application/json",
+      ...(token && { "Authorization": `Bearer ${token}` }),
     },
-    credentials: "include", // VERY IMPORTANT (cookies)
     ...options,
   });
 
