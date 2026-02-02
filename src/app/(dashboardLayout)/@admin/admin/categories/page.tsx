@@ -26,15 +26,21 @@ import Link from "next/link";
 export default function AllCategoriesPage() {
   const [categories, setCategories] = useState<AdminCategory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchCategories = async () => {
     try {
       setLoading(true);
+      setError(null);
+      console.log('Fetching categories from:', `/api/admin/categories`);
       const fetchedCategories = await adminService.getCategories();
+      console.log('Categories fetched successfully:', fetchedCategories.length);
       setCategories(fetchedCategories);
     } catch (error) {
-      toast.error("Failed to fetch categories");
-      console.error(error);
+      console.error('Full error details:', error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to fetch categories";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -104,6 +110,14 @@ export default function AllCategoriesPage() {
           {loading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+          ) : error ? (
+            <div className="rounded-md border border-red-200 bg-red-50 p-4 text-red-700">
+              <p className="font-semibold">Error loading categories</p>
+              <p className="text-sm mt-1">{error}</p>
+              <Button onClick={fetchCategories} variant="outline" className="mt-4 text-red-700 border-red-700 hover:bg-red-100">
+                Try Again
+              </Button>
             </div>
           ) : (
             <div className="rounded-md border">

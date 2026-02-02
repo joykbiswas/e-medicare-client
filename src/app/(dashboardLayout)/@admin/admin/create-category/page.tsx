@@ -27,7 +27,8 @@ export default function CreateCategoryPage() {
       toast.success("Category created successfully");
       router.push("/admin/categories");
     } catch (error) {
-      toast.error("Failed to create category");
+      const errorMessage = error instanceof Error ? error.message : "Failed to create category";
+      toast.error(errorMessage);
       console.error(error);
     } finally {
       setSubmitting(false);

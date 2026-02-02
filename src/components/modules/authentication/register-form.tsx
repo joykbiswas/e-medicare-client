@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { apiRequest } from "@/lib/auth-client";
 // import { authClient } from "@/lib/auth-client";
 import { useForm } from "@tanstack/react-form";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import * as z from "zod";
 
@@ -31,6 +32,7 @@ const formSchema = z.object({
 
 
 export function RegisterForm({ ...props }: React.ComponentProps<typeof Card>) {
+const router = useRouter();
 
   const form = useForm({
     defaultValues: {
@@ -55,6 +57,7 @@ export function RegisterForm({ ...props }: React.ComponentProps<typeof Card>) {
         });
 
         form.reset();
+         router.push("/login");
       } catch (err: any) {
         toast.error(err.message, { id: toastId });
       }

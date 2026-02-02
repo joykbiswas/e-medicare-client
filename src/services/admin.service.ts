@@ -1,6 +1,6 @@
-import { API_BASE } from "@/lib/auth-client";
-
-const ADMIN_API_BASE = `${API_BASE}/admin`;
+// Use local API routes for server-side requests to avoid CORS issues
+const LOCAL_API_BASE = "/api";
+const ADMIN_API_BASE = `${LOCAL_API_BASE}/admin`;
 
 interface PaginationData {
   total: number;
@@ -150,12 +150,38 @@ export const adminService = {
 
   // Categories
   async getCategories(): Promise<AdminCategory[]> {
-    const response = await fetch(`${ADMIN_API_BASE}/categories`, {
-      headers: getHeaders(),
-      credentials: "include",
-    });
-    const data = await response.json();
-    return data.data;
+    try {
+      const response = await fetch(`${ADMIN_API_BASE}/categories`, {
+        headers: getHeaders(),
+        credentials: "include",
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`API Error: ${response.status} ${response.statusText}`, errorText);
+        throw new Error(`Failed to fetch categories: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('Categories API response:', data);
+      
+      // Handle different response structures
+      if (Array.isArray(data)) {
+        return data;
+      }
+      if (Array.isArray(data.data)) {
+        return data.data;
+      }
+      if (data.data && Array.isArray(data.data.categories)) {
+        return data.data.categories;
+      }
+      
+      console.warn('Unexpected response structure:', data);
+      return [];
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      throw error;
+    }
   },
 
   async createCategory(name: string): Promise<AdminCategory> {
@@ -165,6 +191,9 @@ export const adminService = {
       credentials: "include",
       body: JSON.stringify({ name }),
     });
+    if (!response.ok) {
+      throw new Error(`Failed to create category: ${response.statusText}`);
+    }
     const data = await response.json();
     return data.data;
   },
@@ -176,15 +205,21 @@ export const adminService = {
       credentials: "include",
       body: JSON.stringify({ name }),
     });
+    if (!response.ok) {
+      throw new Error(`Failed to update category: ${response.statusText}`);
+    }
     const data = await response.json();
     return data.data;
   },
 
   async deleteCategory(categoryId: string): Promise<void> {
-    await fetch(`${ADMIN_API_BASE}/categories/${categoryId}`, {
+    const response = await fetch(`${ADMIN_API_BASE}/categories/${categoryId}`, {
       method: "DELETE",
       headers: getHeaders(),
       credentials: "include",
     });
+    if (!response.ok) {
+      throw new Error(`Failed to delete category: ${response.statusText}`);
+    }
   },
 };

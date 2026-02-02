@@ -18,19 +18,19 @@ const heroSlides = [
     title: "Your Health, Our Priority",
     description: "Get genuine medicines delivered to your doorstep with care and precision.",
     cta: "Shop Now",
-    bgImage: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=1920&q=80", // Healthcare/Medical theme
+    bgImage: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=1920&q=80", 
   },
   {
     title: "Trusted Medicines at Your Doorstep",
     description: "100% authentic pharmaceutical products from licensed distributors.",
     cta: "Browse Medicines",
-    bgImage: "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=1920&q=80", // Pharmacy/Medicine theme
+    bgImage: "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=1920&q=80",
   },
   {
     title: "Fast & Secure Delivery",
     description: "Same-day delivery available. Your health needs, delivered safely.",
     cta: "Order Now",
-    bgImage: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1920&q=80", // Fast delivery/Delivery service theme
+    bgImage: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1920&q=80", 
   },
 ];
 

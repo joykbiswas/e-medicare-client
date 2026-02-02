@@ -21,13 +21,28 @@ export const adminRoute: Route[] = [
         title: "Orders",
         url: "/admin/orders",
       },
+      
+    ],
+  },
+  {
+    title: "Categories",
+    items: [
       {
-        title: "Categories",
+        title: "All Categories",
         url: "/admin/categories",
       },
       {
         title: "Create-Category",
         url: "/admin/create-category",
+      },
+    ],
+  },
+  {
+    title: "Home",
+    items: [
+      {
+        title: "Home",
+        url: "/",
       },
     ],
   },
