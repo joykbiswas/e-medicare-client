@@ -46,7 +46,7 @@ export function CategoriesSection({ categories }: CategoriesSectionProps) {
                                 key={category.id}
                                 className="group hover:shadow-md transition-all duration-300 cursor-pointer border-2 hover:border-primary/50 w-full sm:w-[calc(50%-0.5rem)] md:w-[calc(33.333%-0.67rem)] lg:w-[calc(25%-0.75rem)] xl:w-[calc(16.666%-0.83rem)] max-w-[200px]"
                             >
-                                <Link href={`/medicines?category=${category.id}`}>
+                               
                                     <CardContent className="p-6 flex flex-col items-center justify-center text-center space-y-3 min-h-[140px]">
                                         <div className="text-primary group-hover:scale-110 transition-transform duration-300">
                                             {getIcon(category.name)}
@@ -63,7 +63,7 @@ export function CategoriesSection({ categories }: CategoriesSectionProps) {
                                             <span>Explore</span>
                                         </Button>
                                     </CardContent>
-                                </Link>
+                                
                             </Card>
                         ))}
                     </div>

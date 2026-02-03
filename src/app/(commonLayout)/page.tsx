@@ -4,6 +4,7 @@ import { CategoriesSection } from "@/components/modules/homepage/CategoriesSecti
 import { FeaturesSection } from "@/components/modules/homepage/FeaturesSection";
 import { Footer } from "@/components/shared/footer";
 import { medicineService } from "@/services/medicine.service";
+import ReviewSection from "@/components/modules/homepage/ReviewSection";
 
 export default async function Home() {
   // Fetch data in parallel
@@ -20,6 +21,7 @@ export default async function Home() {
       <HeroSection />
       <CategoriesSection categories={categories} />
       <MedicinesSection medicines={medicines} />
+      <ReviewSection />
       <FeaturesSection />
       <Footer />
     </main>

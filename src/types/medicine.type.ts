@@ -27,11 +27,16 @@ export interface Medicine {
     rating: number;
     comment: string;
     userId: string;
-    medicineId: string;
+    user: {
+      name: string;
+      email: string;
+    };
+    createdAt: string;
+    updatedAt: string;
   }>;
 }
 
-export interface MedicineDetail extends Medicine {
+export interface MedicineDetail extends Omit<Medicine, 'reviews'> {
   seller: {
     id: string;
     name: string;
@@ -42,7 +47,12 @@ export interface MedicineDetail extends Medicine {
     rating: number;
     comment: string;
     userId: string;
-    medicineId: string;
+    user: {
+      name: string;
+      email: string;
+    };
+    createdAt: string;
+    updatedAt: string;
   }>;
 }
 

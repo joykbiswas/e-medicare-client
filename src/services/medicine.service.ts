@@ -5,7 +5,7 @@ export const medicineService = {
   getCategories: async (): Promise<{ data: Category[] | null; error: string | null }> => {
     try {
       const res = await fetch(`${API_BASE}/categories`, {
-        next: { revalidate: 3600 }, // Revalidate every hour
+        cache: "no-cache", 
       });
       const result: ApiResponse<Category[]> = await res.json();
       
@@ -34,7 +34,7 @@ export const medicineService = {
       }
 
       const res = await fetch(url.toString(), {
-        next: { revalidate: 300 }, // Revalidate every 5 minutes
+        cache: "no-cache" 
       });
       const result: ApiResponse<Medicine[]> = await res.json();
       
@@ -56,7 +56,7 @@ export const medicineService = {
   getMedicineById: async (id: string): Promise<{ data: MedicineDetail | null; error: string | null }> => {
     try {
       const res = await fetch(`${API_BASE}/medicines/${id}`, {
-        next: { revalidate: 300 },
+       cache: "no-store"
       });
       const result: ApiResponse<MedicineDetail> = await res.json();
       

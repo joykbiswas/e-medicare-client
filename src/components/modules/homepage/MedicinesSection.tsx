@@ -21,7 +21,7 @@ export function MedicinesSection({ medicines }: MedicinesSectionProps) {
             </p>
           </div>
           <Button variant="outline" size="sm" asChild>
-            <Link href="/medicines">View All</Link>
+            <Link href="/shop">View All</Link>
           </Button>
         </div>
 

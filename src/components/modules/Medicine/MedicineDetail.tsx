@@ -28,7 +28,7 @@ import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
 import type { MedicineDetail } from "@/types/medicine.type";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { medicineService } from "@/services/medicine.service";
 import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/contexts/AuthContext";
@@ -40,16 +40,33 @@ interface MedicineDetailProps {
 export function MedicineDetailComponent({
   medicine: initialMedicine,
 }: MedicineDetailProps) {
+  // ========== ALL HOOKS AT THE TOP ==========
   const { addToCart } = useCart();
   const { user, loading, isAuthenticated } = useAuthContext();
+  const router = useRouter();
+  
+  const [imageError, setImageError] = useState(false);
+  const [quantity, setQuantity] = useState(1);
+  const [rating, setRating] = useState(0);
+  const [hoveredRating, setHoveredRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
+  const [reviews, setReviews] = useState(initialMedicine.reviews);
+  
+  // Add state for user's reviews
+  const [userReviews, setUserReviews] = useState<any[]>([]);
 
-  console.log("medicine - medicine:", initialMedicine);
-  console.log("useAuthContext - loading:", loading);
-  console.log("useAuthContext - isAuthenticated:", isAuthenticated);
+  // Filter user's reviews when component loads or user changes
+  useEffect(() => {
+    if (user && reviews.length > 0) {
+      const userReviewsForMedicine = reviews.filter(review => review.userId === user.id);
+      setUserReviews(userReviewsForMedicine);
+    }
+  }, [user, reviews]);
 
-  // Show loading skeleton while auth is loading
+  // ========== CONDITIONAL RETURNS ==========
   if (loading) {
-    console.log("Showing loading skeleton...");
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 animate-pulse">
@@ -65,19 +82,7 @@ export function MedicineDetailComponent({
     );
   }
 
-  console.log("Auth loaded - user:", user, "isAuthenticated:", isAuthenticated);
-  const router = useRouter();
-  const [imageError, setImageError] = useState(false);
-  const [quantity, setQuantity] = useState(1);
-
-  // Review form state
-  const [rating, setRating] = useState(0);
-  const [hoveredRating, setHoveredRating] = useState(0);
-  const [comment, setComment] = useState("");
-  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
-  const [reviewError, setReviewError] = useState<string | null>(null);
-  const [reviews, setReviews] = useState(initialMedicine.reviews);
-
+  // ========== REST OF COMPONENT LOGIC ==========
   const handleAddToCart = () => {
     for (let i = 0; i < quantity; i++) {
       addToCart({
@@ -154,6 +159,12 @@ export function MedicineDetailComponent({
     e.preventDefault();
     setReviewError(null);
 
+    if (!isAuthenticated || !user) {
+      setReviewError("Please login to submit a review");
+      toast.error("Please login to submit a review");
+      return;
+    }
+
     if (rating === 0) {
       setReviewError("Please select a rating");
       return;
@@ -178,12 +189,45 @@ export function MedicineDetailComponent({
         toast.error(error);
       } else {
         toast.success("Review submitted successfully!");
+        
+        // Create a new review object to add to the list
+        const newReview = {
+          id: `temp-${Date.now()}`, // Temporary ID until we refetch
+          rating,
+          comment: comment.trim(),
+          userId: user.id,
+          user: {
+            name: user.name,
+            email: user.email,
+          },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+
+        // Add the new review to the reviews list immediately
+        setReviews([...reviews, newReview]);
+        
+        // Reset form
         setRating(0);
         setComment("");
         setHoveredRating(0);
+        setReviewError(null);
 
-        // Refresh the page to get updated reviews
-        router.refresh();
+        // Show success message
+        toast.success("Your review has been added!");
+        
+        // Optionally refetch to get the actual review from server
+        // This ensures we have the real ID and any server-side data
+        setTimeout(async () => {
+          try {
+            const { data: updatedMedicine } = await medicineService.getMedicineById(initialMedicine.id);
+            if (updatedMedicine) {
+              setReviews(updatedMedicine.reviews);
+            }
+          } catch (err) {
+            console.log("Could not refetch reviews, but local update worked");
+          }
+        }, 500);
       }
     } catch (err) {
       setReviewError("Failed to submit review. Please try again.");
@@ -347,10 +391,7 @@ export function MedicineDetailComponent({
               size="lg"
               onClick={() => {
                 if (!isAuthenticated) {
-                  // Navigate to login page - adjust based on your routing
-                  router.push("/login"); // If using Next.js router
-                  // or window.location.href = '/login'; // If not using Next.js
-                  // or navigate('/login'); // If using React Router
+                  router.push("/login");
                   return;
                 }
                 handleAddToCart();
@@ -404,7 +445,7 @@ export function MedicineDetailComponent({
           </h2>
           <p className="text-muted-foreground">
             {reviews.length > 0
-              ? "See what our customers are saying about this product"
+              ? `See what our customers are saying about this product${userReviews.length > 0 ? ` (You have ${userReviews.length} review${userReviews.length !== 1 ? 's' : ''})` : ''}`
               : "Be the first to review this product"}
           </p>
         </div>
@@ -478,7 +519,7 @@ export function MedicineDetailComponent({
           </CardContent>
         </Card>
 
-        {/* Existing Reviews */}
+        {/* Existing Reviews - Shows immediately after submission */}
         {reviews.length > 0 ? (
           <div className="grid gap-4">
             {reviews.map((review) => (
@@ -489,12 +530,18 @@ export function MedicineDetailComponent({
                       {renderStars(review.rating)}
                       <span className="font-semibold">{review.rating}/5</span>
                     </div>
+                    {/* {review.userId === user?.id && (
+                      <Badge variant="outline" className="bg-blue-50">
+                        Your Review
+                      </Badge>
+                    )} */}
                   </div>
                   {review.comment && (
                     <p className="text-muted-foreground leading-relaxed">
                       {review.comment}
                     </p>
                   )}
+                  
                 </CardContent>
               </Card>
             ))}
