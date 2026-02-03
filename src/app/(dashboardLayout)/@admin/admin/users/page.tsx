@@ -67,11 +67,46 @@ export default function AllUsersPage() {
     setCurrentPage(page);
   };
 
-  const handleStatusChange = async (userId: string, status: string, isBanned: boolean) => {
+  // Single handler for both status changes and ban toggles
+  const handleStatusChange = async (
+    userId: string,
+    status?: string,
+    isBanned?: boolean,
+  ) => {
     try {
       setUpdatingUser(userId);
-      await adminService.updateUser(userId, status, isBanned);
-      toast.success("User status updated successfully");
+
+      // Find the current user
+      const currentUser = users.find((user) => user.id === userId);
+      if (!currentUser) return;
+
+      // Use provided values or keep current ones
+      let newStatus = status !== undefined ? status : currentUser.status;
+      let newIsBanned =
+        isBanned !== undefined ? isBanned : currentUser.isBanned;
+
+      // Automatically set ban status based on new status
+      if (status !== undefined) {
+        if (status === "INACTIVE") {
+          newIsBanned = true;
+        } else if (status === "ACTIVE") {
+          newIsBanned = false;
+        }
+      }
+
+      await adminService.updateUser(userId, newStatus, newIsBanned);
+
+      // Show appropriate success message
+      if (status !== undefined && isBanned !== undefined) {
+        toast.success("User status and ban status updated successfully");
+      } else if (status !== undefined) {
+        toast.success("User status updated successfully");
+      } else if (isBanned !== undefined) {
+        toast.success(
+          `User ${newIsBanned ? "banned" : "unbanned"} successfully`,
+        );
+      }
+
       fetchUsers();
     } catch (error) {
       toast.error("Failed to update user status");
@@ -162,9 +197,15 @@ export default function AllUsersPage() {
                       <th className="h-10 px-4 text-left font-medium">Name</th>
                       <th className="h-10 px-4 text-left font-medium">Email</th>
                       <th className="h-10 px-4 text-left font-medium">Role</th>
-                      <th className="h-10 px-4 text-left font-medium">Status</th>
-                      <th className="h-10 px-4 text-left font-medium">Banned</th>
-                      <th className="h-10 px-4 text-left font-medium">Actions</th>
+                      <th className="h-10 px-4 text-left font-medium">
+                        Status
+                      </th>
+                      <th className="h-10 px-4 text-left font-medium">
+                        Banned
+                      </th>
+                      <th className="h-10 px-4 text-left font-medium">
+                        Actions
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -175,7 +216,7 @@ export default function AllUsersPage() {
                         <td className="p-4">
                           <span
                             className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getRoleBadgeColor(
-                              user.role
+                              user.role,
                             )}`}
                           >
                             {user.role}
@@ -184,7 +225,7 @@ export default function AllUsersPage() {
                         <td className="p-4">
                           <span
                             className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusBadgeColor(
-                              user.status
+                              user.status,
                             )}`}
                           >
                             {user.status}
@@ -192,7 +233,9 @@ export default function AllUsersPage() {
                         </td>
                         <td className="p-4">
                           {user.isBanned ? (
-                            <span className="text-red-600 font-medium">Yes</span>
+                            <span className="text-red-600 font-medium">
+                              Yes
+                            </span>
                           ) : (
                             <span className="text-green-600">No</span>
                           )}
@@ -202,7 +245,11 @@ export default function AllUsersPage() {
                             <Select
                               value={user.status}
                               onValueChange={(status) =>
-                                handleStatusChange(user.id, status, user.isBanned)
+                                handleStatusChange(
+                                  user.id,
+                                  status,
+                                  user.isBanned,
+                                )
                               }
                               disabled={updatingUser === user.id}
                             >
@@ -211,23 +258,31 @@ export default function AllUsersPage() {
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="ACTIVE">Active</SelectItem>
-                                <SelectItem value="INACTIVE">Inactive</SelectItem>
+                                <SelectItem value="INACTIVE">
+                                  Inactive
+                                </SelectItem>
                               </SelectContent>
                             </Select>
                             <Button
-                              variant={user.isBanned ? "default" : "destructive"}
+                              variant={
+                                user.isBanned ? "destructive" : "default"
+                              }
                               size="sm"
                               onClick={() =>
-                                handleStatusChange(user.id, user.status, !user.isBanned)
+                                handleStatusChange(
+                                  user.id,
+                                  user.status,
+                                  !user.isBanned,
+                                )
                               }
                               disabled={updatingUser === user.id}
                             >
                               {updatingUser === user.id ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
                               ) : user.isBanned ? (
-                                "Unban"
-                              ) : (
                                 "Ban"
+                              ) : (
+                                "Unban"
                               )}
                             </Button>
                           </div>
@@ -236,55 +291,6 @@ export default function AllUsersPage() {
                     ))}
                   </tbody>
                 </table>
-              </div>
-
-              {/* Pagination */}
-              <div className="flex items-center justify-between px-2 py-4 border-t mt-4">
-                <div className="text-sm text-muted-foreground">
-                  Showing{" "}
-                  {Math.min(((currentPage - 1) * pagination.limit) + 1, pagination.total)} to{" "}
-                  {Math.min(currentPage * pagination.limit, pagination.total)} of {pagination.total}{" "}
-                  users
-                </div>
-                {pagination.totalPages > 1 && (
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handlePageChange(1)}
-                      disabled={currentPage === 1}
-                    >
-                      <ChevronsLeft className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 1}
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <span className="text-sm font-medium">
-                      Page {currentPage} of {pagination.totalPages}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage === pagination.totalPages}
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handlePageChange(pagination.totalPages)}
-                      disabled={currentPage === pagination.totalPages}
-                    >
-                      <ChevronsRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
               </div>
             </>
           )}

@@ -65,7 +65,7 @@ export default function OrderDetailPage() {
       if (!orderId) return;
       
       try {
-        const res = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
+        const res = await fetch(`https://e-medicare-server.vercel.app/api/orders/${orderId}`, {
           credentials: "include",
         });
         const result = await res.json();
@@ -118,7 +118,7 @@ export default function OrderDetailPage() {
   const getStatusBgColor = (status: string) => {
     switch (status) {
       case "DELIVERED":
-        return "from-green-300 to-green-400";
+        return "from-green-400 to-green-500";
       case "PROCESSING":
         return "from-blue-300 to-blue-400";
       case "SHIPPED":

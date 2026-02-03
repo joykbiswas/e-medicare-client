@@ -142,7 +142,7 @@ const Navbar = ({
     
     // Call logout API to clear server-side cookie
     try {
-      await fetch("http://localhost:5000/api/auth/logout", {
+      await fetch("https://e-medicare-server.vercel.app/api/auth/logout", {
         method: "POST",
         credentials: "include",
       });

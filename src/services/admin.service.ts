@@ -1,5 +1,6 @@
-// Use local API routes for server-side requests to avoid CORS issues
-const LOCAL_API_BASE = "/api";
+"use client";
+
+const LOCAL_API_BASE = "https://e-medicare-server.vercel.app/api";
 const ADMIN_API_BASE = `${LOCAL_API_BASE}/admin`;
 
 interface PaginationData {
@@ -74,16 +75,23 @@ export interface AdminCategory {
   updatedAt: string;
 }
 
-const getHeaders = () => ({
-  "Content-Type": "application/json",
-});
+const getHeaders = () => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
+  return {
+    "Content-Type": "application/json",
+    ...(token && { "Authorization": `Bearer ${token}` }),
+  };
+};
 
 export const adminService = {
   // Users
   async getUsers(page = 1, limit = 10): Promise<{ users: AdminUser[]; pagination: PaginationData }> {
+    const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
     const response = await fetch(`${ADMIN_API_BASE}/users?page=${page}&limit=${limit}`, {
-      headers: getHeaders(),
-      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
     });
     const data = await response.json();
     return {
@@ -93,10 +101,13 @@ export const adminService = {
   },
 
   async updateUser(userId: string, status: string, isBanned: boolean): Promise<AdminUser> {
+    const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
     const response = await fetch(`${ADMIN_API_BASE}/users/${userId}`, {
       method: "PATCH",
-      headers: getHeaders(),
-      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
       body: JSON.stringify({ status, isBanned }),
     });
     const data = await response.json();
@@ -105,9 +116,12 @@ export const adminService = {
 
   // Medicines
   async getMedicines(page = 1, limit = 10): Promise<{ medicines: AdminMedicine[]; pagination: PaginationData }> {
+    const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
     const response = await fetch(`${ADMIN_API_BASE}/medicines?page=${page}&limit=${limit}`, {
-      headers: getHeaders(),
-      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
     });
     const data = await response.json();
     return {
@@ -117,18 +131,24 @@ export const adminService = {
   },
 
   async deleteMedicine(medicineId: string): Promise<void> {
+    const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
     await fetch(`${ADMIN_API_BASE}/medicines/${medicineId}`, {
       method: "DELETE",
-      headers: getHeaders(),
-      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
     });
   },
 
   // Orders
   async getOrders(page = 1, limit = 10): Promise<{ orders: AdminOrder[]; pagination: PaginationData }> {
+    const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
     const response = await fetch(`${ADMIN_API_BASE}/orders?page=${page}&limit=${limit}`, {
-      headers: getHeaders(),
-      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
     });
     const data = await response.json();
     return {
@@ -138,10 +158,13 @@ export const adminService = {
   },
 
   async updateOrderStatus(orderId: string, status: string): Promise<AdminOrder> {
+    const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
     const response = await fetch(`${ADMIN_API_BASE}/orders/${orderId}`, {
       method: "PATCH",
-      headers: getHeaders(),
-      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
       body: JSON.stringify({ status }),
     });
     const data = await response.json();
@@ -151,9 +174,12 @@ export const adminService = {
   // Categories
   async getCategories(): Promise<AdminCategory[]> {
     try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
       const response = await fetch(`${ADMIN_API_BASE}/categories`, {
-        headers: getHeaders(),
-        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
       });
       
       if (!response.ok) {
@@ -185,10 +211,13 @@ export const adminService = {
   },
 
   async createCategory(name: string): Promise<AdminCategory> {
+    const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
     const response = await fetch(`${ADMIN_API_BASE}/categories`, {
       method: "POST",
-      headers: getHeaders(),
-      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
       body: JSON.stringify({ name }),
     });
     if (!response.ok) {
@@ -199,10 +228,13 @@ export const adminService = {
   },
 
   async updateCategory(categoryId: string, name: string): Promise<AdminCategory> {
+    const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
     const response = await fetch(`${ADMIN_API_BASE}/categories/${categoryId}`, {
       method: "PATCH",
-      headers: getHeaders(),
-      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
       body: JSON.stringify({ name }),
     });
     if (!response.ok) {
@@ -213,10 +245,13 @@ export const adminService = {
   },
 
   async deleteCategory(categoryId: string): Promise<void> {
+    const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
     const response = await fetch(`${ADMIN_API_BASE}/categories/${categoryId}`, {
       method: "DELETE",
-      headers: getHeaders(),
-      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
     });
     if (!response.ok) {
       throw new Error(`Failed to delete category: ${response.statusText}`);

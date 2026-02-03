@@ -68,19 +68,21 @@ export const medicineService = {
       return { data: null, error: "Something went wrong" };
     }
   },
-
-  createReview: async (data: {
+  
+createReview: async (data: {
     medicineId: string;
     rating: number;
     comment: string;
   }): Promise<{ data: any | null; error: string | null }> => {
     try {
+      const token = localStorage.getItem("token");
       const res = await fetch(`${API_BASE}/reviews`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
-        credentials: "include",
+        // credentials: "include", // Remove this
         body: JSON.stringify(data),
       });
 
@@ -94,5 +96,6 @@ export const medicineService = {
       return { data: null, error: "Something went wrong" };
     }
   },
+
 
 };

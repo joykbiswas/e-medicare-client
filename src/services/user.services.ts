@@ -70,7 +70,7 @@ export const userService = {
     try {
       const cookieStore = await cookies();
 
-      const res = await fetch(`${process.env.AUTH_URL || 'http://localhost:5000'}/get-session`, {
+      const res = await fetch(`${process.env.AUTH_URL || 'https://e-medicare-server.vercel.app'}/get-session`, {
         headers: {
           Cookie: cookieStore.toString(),
         },

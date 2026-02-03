@@ -47,12 +47,19 @@ export interface SellerOrdersResponse {
     totalPages: number;
   };
 }
+const getAuthHeaders = () => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
+  return {
+    "Content-Type": "application/json",
+    ...(token && { "Authorization": `Bearer ${token}` }),
+  };
+};
 
 export const sellerService = {
   getOrders: async (): Promise<{ data: SellerOrdersResponse | null; error: string | null }> => {
     try {
       const res = await fetch(`${API_BASE}/seller/orders`, {
-        credentials: "include",
+        headers: getAuthHeaders(),
         next: { revalidate: 0 },
       });
       const result: ApiResponse<SellerOrder[]> = await res.json();
@@ -84,10 +91,7 @@ export const sellerService = {
     try {
       const res = await fetch(`${API_BASE}/seller/orders/${orderId}`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
+        headers: getAuthHeaders(),
         body: JSON.stringify({ status }),
       });
 
@@ -117,7 +121,7 @@ export const sellerService = {
       }
 
       const res = await fetch(url.toString(), {
-        credentials: "include",
+        headers: getAuthHeaders(),
         next: { revalidate: 0 },
       });
       const result: ApiResponse<any[]> = await res.json();
@@ -146,10 +150,7 @@ export const sellerService = {
     try {
       const res = await fetch(`${API_BASE}/seller/medicines`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
+        headers: getAuthHeaders(),
         body: JSON.stringify(data),
       });
 
@@ -171,10 +172,7 @@ export const sellerService = {
     try {
       const res = await fetch(`${API_BASE}/seller/medicines/${medicineId}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
+        headers: getAuthHeaders(),
         body: JSON.stringify(data),
       });
 
@@ -195,7 +193,7 @@ export const sellerService = {
     try {
       const res = await fetch(`${API_BASE}/seller/medicines/${medicineId}`, {
         method: "DELETE",
-        credentials: "include",
+        headers: getAuthHeaders(),
       });
 
       const result = await res.json();

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const API_BASE = "http://localhost:5000/api";
+const API_BASE = "https://e-medicare-server.vercel.app/api";
 
 export async function GET(request: NextRequest) {
   try {

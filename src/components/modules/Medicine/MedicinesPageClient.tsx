@@ -97,7 +97,7 @@ export function MedicinesPageClient({
       params.delete("category");
     }
     params.delete("page");
-    router.push(`/medicines?${params.toString()}`);
+    router.push(`/shop?${params.toString()}`);
 
     // Fetch filtered medicines
     const { data, error } = await medicineService.getMedicines({
@@ -117,7 +117,7 @@ export function MedicinesPageClient({
     setLoading(true);
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", newPage.toString());
-    router.push(`/medicines?${params.toString()}`);
+    router.push(`/shop?${params.toString()}`);
 
     const { data, error } = await medicineService.getMedicines({
       page: newPage,
@@ -136,7 +136,7 @@ export function MedicinesPageClient({
   const clearFilters = () => {
     setSearchQuery("");
     setSelectedCategory("");
-    router.push("/medicines");
+    router.push("/shop");
     // Reload medicines without filters
     setLoading(true);
     medicineService.getMedicines({ page: 1, limit: 12 }).then(({ data, error }) => {
